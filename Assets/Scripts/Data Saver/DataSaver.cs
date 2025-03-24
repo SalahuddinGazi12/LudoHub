@@ -180,20 +180,34 @@ namespace SecureDataSaver
 
         public static void WriteAllBytes(byte[] dataToWrite, string fileName)
         {
-            string path = Path.Combine(SelectedPath, fileName);
-            
+            if (dataToWrite == null || dataToWrite.Length == 0)
+            {
+                Debug.LogError("Data is null or empty. Skipping write.");
+                return;
+            }
+
+            // Replace invalid characters
+            string safeFileName = fileName.Replace("@", "_").Replace(".", "_");
+            string path = Path.Combine(SelectedPath, safeFileName);
+
+            // Ensure directory exists
+            if (!Directory.Exists(SelectedPath))
+            {
+                Directory.CreateDirectory(SelectedPath);
+            }
+
             Debug.LogError($"Path: {path}");
-            
+
             try
             {
                 File.WriteAllBytes(path, dataToWrite);
+                Debug.Log("File saved successfully at: " + path);
             }
             catch (Exception e)
             {
                 Debug.LogWarning("Failed To Save Data to: " + path.Replace("/", "\\"));
                 Debug.LogWarning("Error: " + e.Message);
             }
-
         }
 
         public static string ReadData(string fileName)
@@ -337,10 +351,20 @@ namespace SecureDataSaver
 
         public static void DeleteFile(string fileName)
         {
+            if (string.IsNullOrEmpty(fileName))
+            {
+                Debug.LogError("DeleteFile called with an empty or null fileName.");
+                return;
+            }
+
             string path = Path.Combine(SelectedPath, fileName);
-            if (File.Exists(Path.Combine(SelectedPath, fileName)))
+
+            Debug.Log($"Trying to delete file: {path}");
+
+            if (File.Exists(path))
             {
                 File.Delete(path);
+                Debug.Log($"File deleted successfully: {path}");
             }
             else
             {

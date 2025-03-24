@@ -9,6 +9,7 @@ using Photon.Pun;
 using UnityEngine.Events;
 using SecureDataSaver;
 using UnityEngine.Serialization;
+using System.Threading.Tasks;
 
 public class MenuManager : MonoBehaviour
 {
@@ -1269,17 +1270,34 @@ public class MenuManager : MonoBehaviour
             {
                 if (texture2D == null)
                 {
-                    popUp.ShowMessagePanel("Something went wrong, please try again while downloading profile picture");
+                   // popUp.ShowMessagePanel("Something went wrong, please try again while downloading profile picture");
                     return;
                 }
 
                 Sprite sprite = CreateSpriteFromTexture(texture2D);
                 userAvatar.sprite = sprite;
 
+                // Ensure texture is valid before encoding
                 byte[] imageData = texture2D.EncodeToJPG();
-                Debug.Log($"FileName: {string.Concat(response.user.email, "_photo")}");
-                DataSaver.WriteAllBytes(imageData, string.Concat(response.user.email, "_photo"));
-                DataManager.Instance.SetPlayerAvatar(CreateSpriteFromTexture(texture2D));
+                if (imageData == null || imageData.Length == 0)
+                {
+                    Debug.LogError("Encoded image data is empty, skipping save.");
+                    return;
+                }
+
+                // Sanitize file name
+                string safeFileName = response.user.email.Replace("@", "_").Replace(".", "_") + "_photo";
+
+                Debug.Log($"Safe FileName: {safeFileName}");
+
+                // Delay before writing to avoid race conditions
+                Task.Run(async () =>
+                {
+                    await Task.Delay(100);
+                    DataSaver.WriteAllBytes(imageData, safeFileName);
+                });
+
+                DataManager.Instance.SetPlayerAvatar(sprite);
             });
 
             APIHandler.Instance.GetConfig(DataManager.Instance.Token, configResponse =>
@@ -1365,13 +1383,25 @@ public class MenuManager : MonoBehaviour
             ShowLoadingPanelWithMessage("Logging out, please wait.");
             APIHandler.Instance.LogOut(DataManager.Instance.Token, response =>
             {
-                Debug.Log($"LogOur: {response}");
+                Debug.Log($"LogOut Response: {response}");
 
                 LogOutResponse logOutResponse = JsonUtility.FromJson<LogOutResponse>(response);
                 if (logOutResponse is { status: true })
                 {
-                    DataSaver.DeleteFile(PlayerPrefs.GetString("userData") + "_photo");
-                    DataSaver.DeleteFile(PlayerPrefs.GetString("userData"));
+                    string userData = PlayerPrefs.GetString("userData", ""); // Use default empty string
+
+                    if (!string.IsNullOrEmpty(userData))
+                    {
+                        string photoFile = userData + "_photo";
+                        Debug.Log($"Deleting files: {photoFile}, {userData}");
+
+                        DataSaver.DeleteFile(photoFile);
+                        DataSaver.DeleteFile(userData);
+                    }
+                    else
+                    {
+                        Debug.LogError("userData is empty or missing. Skipping file deletion.");
+                    }
                 }
                 else
                 {
@@ -1387,11 +1417,17 @@ public class MenuManager : MonoBehaviour
         CloseTopBar();
 
         ClearInputFieldTexts();
-        DataSaver.DeleteFile(PlayerPrefs.GetString("userData"));
-        PlayerPrefs.DeleteKey("userData");
+
+        string userDataKey = PlayerPrefs.GetString("userData", "");
+        if (!string.IsNullOrEmpty(userDataKey))
+        {
+            DataSaver.DeleteFile(userDataKey);
+            PlayerPrefs.DeleteKey("userData");
+        }
+
         DataManager.Instance.ReInitialize();
-        
-        if(isCustomMenuEnable)
+
+        if (isCustomMenuEnable)
             customMenuPanel.SetActive(true);
         else
             OpenMemberTypeSelectionPanel();

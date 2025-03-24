@@ -8,21 +8,21 @@ using UnityEngine.Networking;
 public class APIHandler : MonoBehaviour
 {
     public static APIHandler Instance { get; private set; }
-    private const string appLogInUri = "https://gameapp.soft360.tech/api/app-user/login";
-    private const string gameLogInUri = "https://gameapp.soft360.tech/api/game/login";
+    private const string appLogInUri = "https://bdgamersclub.com/api/app-user/login";
+    private const string gameLogInUri = "https://bdgamersclub.com/api/game/login";
 
-    private const string appRegUri = "https://gameapp.soft360.tech/api/app-user/registration";
-    private const string gameRegUri = "https://gameapp.soft360.tech/api/game/registration";
+    private const string appRegUri = "https://bdgamersclub.com/api/app-user/registration";
+    private const string gameRegUri = "https://bdgamersclub.com/api/game/registration";
 
-    private const string getCoinUri = "https://gameapp.soft360.tech/api/app-user/total-coin";
-    private const string sessionInitUri = "https://gameapp.soft360.tech/api/game/session-initiate";
-    private const string sessionUpdateUri = "https://gameapp.soft360.tech/api/game/session-update";
-    private const string giveCoinToUserUri = "https://gameapp.soft360.tech/api/app-user/give-coin";
-    private const string logOutUri = "https://gameapp.soft360.tech/api/logout";
+    private const string getCoinUri = "https://bdgamersclub.com/api/app-user/total-coin";
+    private const string sessionInitUri = "https://bdgamersclub.com/api/game/session-initiate";
+    private const string sessionUpdateUri = "https://bdgamersclub.com/api/game/session-update";
+    private const string giveCoinToUserUri = "https://bdgamersclub.com/api/app-user/give-coin";
+    private const string logOutUri = "https://bdgamersclub.com/api/logout";
     private const string userDetailUri = "https://bdgamersclub.com/api/game/game-profile?game_id=";
-    private const string configUri = "https://gameapp.soft360.tech/api/get-configuration?key=game_win_coin_deduct_percentage";
+    private const string configUri = "https://bdgamersclub.com/api/get-configuration?key=game_win_coin_deduct_percentage";
     private const string gameHistoryUri = "https://bdgamersclub.com/api/game/game-history?game_id=";
-    private const string wishCoinStoreUrl = "https://gameapp.soft360.tech/api/game/wish-coin-store";
+    private const string wishCoinStoreUrl = "https://bdgamersclub.com/api/game/wish-coin-store";
 
     #region Monobehaviour Methods and Initialization
 

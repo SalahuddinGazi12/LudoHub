@@ -60,7 +60,7 @@ public class DataManager : MonoBehaviour
     [field: SerializeField]public bool IsMyTurn => ActiveDiceColor == OwnDiceColor;
     [SerializeField] private int maxTurnTime = 30;
     [SerializeField] private int maxTurnCanIgnore = 3;
-    [SerializeField] private int maxNumberOfFixTurns = 5;
+    [SerializeField] private int maxNumberOfFixTurns = 10;
     public int MaxTurnTime => maxTurnTime;
     public int MaxTurnCanIgnore => maxTurnCanIgnore;
     public int MaxNumberOfFixTurns => maxNumberOfFixTurns;
