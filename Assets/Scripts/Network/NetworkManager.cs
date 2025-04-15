@@ -10,7 +10,9 @@ using System.Text;
 public class NetworkManager : MonoBehaviourPunCallbacks
 {
     public static NetworkManager Instance { get; private set; }
-
+    [Header("Connection Settings")]
+    [SerializeField] private string gameVersion = "1.0";
+    [SerializeField] private string preferredRegion = "asia";
     private const string UserTypeKey = "userType";
     private const string EntryFeesKey = "entryFees";
     private const string UserUid = "userUid";
@@ -63,9 +65,37 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 
         Instance = this;
 
-        PhotonNetwork.AutomaticallySyncScene = true;
-        PhotonNetwork.NetworkingClient.LoadBalancingPeer.DisconnectTimeout = 30000; // 10 seconds
+        // Singleton pattern
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+
+        ConfigurePhotonSettings();
     }
+
+    private void ConfigurePhotonSettings()
+    {
+        // Version and region
+        PhotonNetwork.GameVersion = gameVersion;
+        PhotonNetwork.PhotonServerSettings.AppSettings.FixedRegion = preferredRegion;
+
+        // Network optimizations for Bangladesh
+        PhotonNetwork.AutomaticallySyncScene = true;
+        PhotonNetwork.SendRate = 30;
+        PhotonNetwork.SerializationRate = 15;
+
+        // Timeout and reliability settings
+        var peer = PhotonNetwork.NetworkingClient.LoadBalancingPeer;
+        peer.DisconnectTimeout = 30000; // 30 seconds
+        peer.QuickResendAttempts = 3;
+        peer.SentCountAllowance = 10;
+    }
+
 
     private void Start()
     {
