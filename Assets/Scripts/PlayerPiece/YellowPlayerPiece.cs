@@ -1,4 +1,4 @@
-using Photon.Pun;
+//using Photon.Pun;
 using UnityEngine;
 using System.Collections;
 
@@ -47,7 +47,7 @@ public class YellowPlayerPiece : PlayerPiece
     //     hasClicked = false; // Reset interaction ability after cooldown
     // }
 
-    [PunRPC]
+   // [PunRPC]
     public override void OnPieceIsTappedToMove()
     {
         if (GameManager.Instance.rolledDice != null)

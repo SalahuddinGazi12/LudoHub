@@ -1,8 +1,8 @@
-using Photon.Pun;
+//using Photon.Pun;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using WebSocketSharp;
+//using WebSocketSharp;
 
 public class ChatManager : MonoBehaviour
 {
@@ -15,13 +15,13 @@ public class ChatManager : MonoBehaviour
     [SerializeField] private RectTransform chatItemParent;
     [SerializeField] private Button chatBtn;
     private int unreadMessageCount;
-    private PhotonView photonView;
+    //private PhotonView photonView;
 
 
     private void Start()
     {
         messageCountGobj.SetActive(false);
-        photonView = GetComponent<PhotonView>();
+       // photonView = GetComponent<PhotonView>();
     }
 
     public void OpenChatBox()
@@ -41,39 +41,40 @@ public class ChatManager : MonoBehaviour
 
     public void SendMessageToChat()
     {
-        if(chatInputField.text.IsNullOrEmpty())
-            return;
+        //if(chatInputField.text.IsNullOrEmpty())
+        //    return;
 
-        string messageString = string.Concat(Helper.GetPascalCaseString(PhotonNetwork.LocalPlayer.NickName), ": ", chatInputField.text);
-        SendMessageRPC(messageString, PhotonNetwork.LocalPlayer.ActorNumber);
-        chatInputField.text = string.Empty;
-        photonView.RPC(nameof(SendMessageRPC), RpcTarget.Others, messageString, PhotonNetwork.LocalPlayer.ActorNumber);
+        //string messageString = string.Concat(Helper.GetPascalCaseString(PhotonNetwork.LocalPlayer.NickName), ": ", chatInputField.text);
+        //SendMessageRPC(messageString, PhotonNetwork.LocalPlayer.ActorNumber);
+        //chatInputField.text = string.Empty;
+        //photonView.RPC(nameof(SendMessageRPC), RpcTarget.Others, messageString, PhotonNetwork.LocalPlayer.ActorNumber);
     }
-    
-    
-    [PunRPC]
+
+
+    // [PunRPC]
     private void SendMessageRPC(string message, int senderActorNum)
     {
-        if(message.IsNullOrEmpty())
-            return;
-        
-        ChatItem instantiatedItem;
-        
-        if (senderActorNum == PhotonNetwork.LocalPlayer.ActorNumber)
-        {
-            //instantiatedItem = Instantiate(DataManager.Instance.OwnTeamColor == TeamColor.White ? blueChatItem : redChatItem, chatItemParent);
-            instantiatedItem = Instantiate(redChatItem, chatItemParent);
-        }
-        else
-        {
-            //instantiatedItem = Instantiate(DataManager.Instance.OpponentTeamColor == TeamColor.White ? blueChatItem : redChatItem, chatItemParent);
-            instantiatedItem = Instantiate(blueChatItem, chatItemParent);
-            unreadMessageCount++;
-            
-            messageCountTxt.text = unreadMessageCount > 9 ? string.Concat(9, "+") : unreadMessageCount.ToString();
-            messageCountGobj.gameObject.SetActive(true);
-        }
+        //    if (message.IsNullOrEmpty()) { 
+        //    //    return;
 
-        instantiatedItem.SetChatText(message);
+        //    //ChatItem instantiatedItem;
+
+        //    //if (senderActorNum == PhotonNetwork.LocalPlayer.ActorNumber)
+        //    //{
+        //    //    //instantiatedItem = Instantiate(DataManager.Instance.OwnTeamColor == TeamColor.White ? blueChatItem : redChatItem, chatItemParent);
+        //    //    instantiatedItem = Instantiate(redChatItem, chatItemParent);
+        //    //}
+        //    else
+        //    {
+        //        ////instantiatedItem = Instantiate(DataManager.Instance.OpponentTeamColor == TeamColor.White ? blueChatItem : redChatItem, chatItemParent);
+        //        //instantiatedItem = Instantiate(blueChatItem, chatItemParent);
+        //        //unreadMessageCount++;
+
+        //        //messageCountTxt.text = unreadMessageCount > 9 ? string.Concat(9, "+") : unreadMessageCount.ToString();
+        //        //messageCountGobj.gameObject.SetActive(true);
+        //    }
+
+        //   // instantiatedItem.SetChatText(message);
+        //}
     }
 }

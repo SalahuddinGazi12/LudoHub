@@ -3,13 +3,13 @@ using System.Collections;
 using UnityEngine;
 using TMPro;
 using UnityEngine.SceneManagement;
-using Photon.Pun;
+//using Photon.Pun;
 using DG.Tweening;
 using System.Threading.Tasks;
 using UnityEngine.U2D;
 using System.Collections.Generic;
 using System.Linq;
-using Photon.Realtime;
+//using Photon.Realtime;
 
 using Action = System.Action;
 
@@ -67,7 +67,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject clockGlassObj;
     public TextMeshProUGUI publictotalmatchfee;
     public TextMeshProUGUI privatetotalmatchfee;
-    private PhotonView photonView;
+   // private PhotonView photonView;
 
     private void Awake()
     {
@@ -80,7 +80,7 @@ public class UIManager : MonoBehaviour
             Destroy(this.gameObject);
             return;
         }
-        photonView = GetComponent<PhotonView>();
+      //  photonView = GetComponent<PhotonView>();
         RemoveAllJoinedPlayers();
     }
 
@@ -375,7 +375,7 @@ public class UIManager : MonoBehaviour
         // GameManager.Instance.RunMethodInRPC(, RpcTarget.AllBuffered, (int)diceColor);
     }
 
-    [PunRPC]
+   // [PunRPC]
     private void HideLeftPlayerRPC(int diceColor)
     {
         DiceColor color = (DiceColor)diceColor;
@@ -406,17 +406,17 @@ public class UIManager : MonoBehaviour
         RemoveAllJoinedPlayers();
         DataManager.Instance.ResetCurrentMatchData();
 
-        if (PhotonNetwork.IsConnected && DataManager.Instance.GameType == GameType.Multiplayer)
-        {
-            try
-            {
-                PhotonNetwork.LeaveRoom();
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-            }
-        }
+        //if (PhotonNetwork.IsConnected && DataManager.Instance.GameType == GameType.Multiplayer)
+        //{
+        //    try
+        //    {
+        //        PhotonNetwork.LeaveRoom();
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        Debug.LogException(e);
+        //    }
+        //}
 
         DataManager.Instance.SetCurrentGameState(GameState.Init);
         SceneManager.LoadScene(0);
@@ -427,7 +427,7 @@ public class UIManager : MonoBehaviour
         if (DataManager.Instance.GameType == GameType.Multiplayer)
         {
             //GameManager.Instance.RaiseTurnChangeEvent(activeDiceColor);
-            photonView.RPC(nameof(ChangeTurnForMultiplayerRPC), RpcTarget.Others, (int) activeDiceColor);
+          //  photonView.RPC(nameof(ChangeTurnForMultiplayerRPC), RpcTarget.Others, (int) activeDiceColor);
         }
         // else
         // {
@@ -437,7 +437,7 @@ public class UIManager : MonoBehaviour
         CommonTurnChangeTask(activeDiceColor);
     }
 
-    [PunRPC]
+  //  [PunRPC]
     public void ChangeTurnForMultiplayerRPC(int diceColor)
     {
         //ChangeTurn(diceColor);
@@ -627,14 +627,13 @@ public class UIManager : MonoBehaviour
         if (DataManager.Instance.OwnDiceColor == winner)
         {
             // Win scenario
-            if (PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("userUid"))
-            {
-                UpdateSession(CoinType.WIN, PhotonNetwork.LocalPlayer.CustomProperties["userUid"].ToString());
-            }
-            else
-            {
+            //if (PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("userUid"))
+            //{
+            //    UpdateSession(CoinType.WIN, PhotonNetwork.LocalPlayer.CustomProperties["userUid"].ToString());
+            //}
+           
                 Debug.LogWarning("User ID not found in CustomProperties");
-            }
+            
             
             // resultText.text = $"You Win!\nEarned Coins: {FormatLargeNumber(earnOrDeductedCoins)}\nPrevious Coins: {FormatLargeNumber(previousCoins)}\nTotal Coins: {FormatLargeNumber(DataManager.Instance.Coins)}";
             trophyImage.SetActive(true);
@@ -675,12 +674,12 @@ public class UIManager : MonoBehaviour
         if (DataManager.Instance.GameType != GameType.Multiplayer) 
             return;
         
-        if (PhotonNetwork.InRoom)
-        {
-            PhotonNetwork.LeaveRoom();
-        }
+        //if (PhotonNetwork.InRoom)
+        //{
+        //    PhotonNetwork.LeaveRoom();
+        //}
 
-        PhotonNetwork.Disconnect();
+        //PhotonNetwork.Disconnect();
 
     }
 
@@ -808,71 +807,71 @@ public class UIManager : MonoBehaviour
     [ContextMenu(nameof(PrivateJoinPlayer))]
     public void PrintJoinPlayer()
     {
-        var playerList = PhotonNetwork.PlayerList;
+        //var playerList = PhotonNetwork.PlayerList;
         
-        foreach (var player in playerList)
+       // foreach (var player in playerList)
         {
-            Debug.Log($"playerName: {player.NickName}");
+           // Debug.Log($"playerName: {player.NickName}");
 
-            if (!player.CustomProperties.ContainsKey(NetworkManager.DICE_COLOR_KEY)) 
-                continue;
+            //if (!player.CustomProperties.ContainsKey(NetworkManager.DICE_COLOR_KEY)) 
+            //    continue;
             
-            DiceColor diceColor = (DiceColor)player.CustomProperties[NetworkManager.DICE_COLOR_KEY];
-            bool exists = joinedPlayers.Any(onlinePlayer => onlinePlayer.SelfDiceColor == diceColor);
+          //  DiceColor diceColor = (DiceColor)player.CustomProperties[NetworkManager.DICE_COLOR_KEY];
+            //bool exists = joinedPlayers.Any(onlinePlayer => onlinePlayer.SelfDiceColor == diceColor);
             
-            Debug.Log($"Exist: {exists}, DiceColor: {diceColor}, PlayerName: {player.NickName}");
+           // Debug.Log($"Exist: {exists}, DiceColor: {diceColor}, PlayerName: {player.NickName}");
         }
     }
 
     public void InstantiateJoinedPlayer(Action callback = null)
     {
-        var playerList = PhotonNetwork.PlayerList;
+        //var playerList = PhotonNetwork.PlayerList;
 
-        if (DataManager.Instance.CurrentRoomType == RoomType.Random)
-        {
-            foreach (var player in playerList)
-            {
-                Debug.Log($"playerName: {player.NickName}");
+        //if (DataManager.Instance.CurrentRoomType == RoomType.Random)
+        //{
+        //    foreach (var player in playerList)
+        //    {
+        //        Debug.Log($"playerName: {player.NickName}");
 
-                if (player.CustomProperties.ContainsKey(NetworkManager.DICE_COLOR_KEY))
-                {
-                    DiceColor diceColor = (DiceColor)player.CustomProperties[NetworkManager.DICE_COLOR_KEY];
-                    bool exists = joinedPlayers.Any(onlinePlayer => onlinePlayer.SelfDiceColor == diceColor);
+        //        if (player.CustomProperties.ContainsKey(NetworkManager.DICE_COLOR_KEY))
+        //        {
+        //            iceColor diceColor = (DiceColor)player.CustomProperties[NetworkManager.DICE_COLOR_KEY];
+        //            bool exists = joinedPlayers.Any(onlinePlayer => onlinePlayer.SelfDiceColor == diceColor);
 
-                    if (diceColor != DiceColor.Unknown && !exists)
-                    {
-                        InstantiateJoinedPlayer(diceColor, player);
-                    }
+        //            if (diceColor != DiceColor.Unknown && !exists)
+        //            {
+        //                InstantiateJoinedPlayer(diceColor, player);
+        //            }
 
-                    Debug.Log($"Exist: {exists}, DiceColor: {diceColor}, PlayerName: {player.NickName}");
-                }
-            }
-        }
-        else
-        {
-            foreach (var player in playerList)
-            {
-                Debug.Log($"playerName: {player.NickName}");
+        //            Debug.Log($"Exist: {exists}, DiceColor: {diceColor}, PlayerName: {player.NickName}");
+        //        }
+        //    }
+        //}
+        //else
+        //{
+        //    foreach (var player in playerList)
+        //    {
+        //        Debug.Log($"playerName: {player.NickName}");
 
-                if (!player.CustomProperties.ContainsKey(NetworkManager.DICE_COLOR_KEY)) 
-                    continue;
-                
-                DiceColor diceColor = (DiceColor)player.CustomProperties[NetworkManager.DICE_COLOR_KEY];
-                bool exists = joinedPlayers.Any(privatePlayer => privatePlayer.SelfDiceColor == diceColor);
+        //        if (!player.CustomProperties.ContainsKey(NetworkManager.DICE_COLOR_KEY))
+        //            continue;
 
-                if (diceColor != DiceColor.Unknown && !exists)
-                {
-                    InstantiateJoinedPlayer(diceColor, player);
-                }
+        //        DiceColor diceColor = (DiceColor)player.CustomProperties[NetworkManager.DICE_COLOR_KEY];
+        //        bool exists = joinedPlayers.Any(privatePlayer => privatePlayer.SelfDiceColor == diceColor);
 
-                Debug.Log($"Exist: {exists}, DiceColor: {diceColor}");
-            }
-        }
+        //        if (diceColor != DiceColor.Unknown && !exists)
+        //        {
+        //            InstantiateJoinedPlayer(diceColor, player);
+        //        }
 
-        callback?.Invoke();
+        //        Debug.Log($"Exist: {exists}, DiceColor: {diceColor}");
+        //    }
+        //}
+
+        //callback?.Invoke();
     }
 
-    public void InstantiateJoinedPlayer(DiceColor diceColor, Player targetedPlayer, Action callback = null)
+    public void InstantiateJoinedPlayer(DiceColor diceColor, /*//Player targetedPlayer*/Action callback = null)
     {
         Debug.Log($"InstantiateJoinedPlayer, {diceColor}");
         if (diceColor == DiceColor.Unknown)
@@ -887,38 +886,38 @@ public class UIManager : MonoBehaviour
             {
                 if(joinedPlayers.Count == 0)
                 {
-                    if (PhotonNetwork.MasterClient.CustomProperties.ContainsKey(NetworkManager.DICE_COLOR_KEY))
-                    {
-                        DiceColor masterClientDiceColor = (DiceColor) PhotonNetwork.MasterClient.CustomProperties[NetworkManager.DICE_COLOR_KEY];
-                        if(masterClientDiceColor != DiceColor.Unknown)
-                        {
-                            JoinedPlayer instantiatedJoinedPlayer = Instantiate(joinedPlayer, joinedMasterPlayerListParent);
-                            instantiatedJoinedPlayer.SetJoinedPlayerInfo(PhotonNetwork.MasterClient.NickName, masterClientDiceColor);
-                            joinedPlayers.Add(instantiatedJoinedPlayer);
-                        }
-                    }
+                    //if (PhotonNetwork.MasterClient.CustomProperties.ContainsKey(NetworkManager.DICE_COLOR_KEY))
+                    //{
+                    //    DiceColor masterClientDiceColor = (DiceColor) PhotonNetwork.MasterClient.CustomProperties[NetworkManager.DICE_COLOR_KEY];
+                    //    if(masterClientDiceColor != DiceColor.Unknown)
+                    //    {
+                    //        JoinedPlayer instantiatedJoinedPlayer = Instantiate(joinedPlayer, joinedMasterPlayerListParent);
+                    //        instantiatedJoinedPlayer.SetJoinedPlayerInfo(PhotonNetwork.MasterClient.NickName, masterClientDiceColor);
+                    //        joinedPlayers.Add(instantiatedJoinedPlayer);
+                    //    }
+                    //}
                 
-                    var playerList = PhotonNetwork.PlayerList;
+                   // var playerList = PhotonNetwork.PlayerList;
         
-                    foreach (var player in playerList)
-                    {
-                        Debug.Log($"playerName: {player.NickName}");
+                    //foreach (var player in playerList)
+                    //{
+                    //    Debug.Log($"playerName: {player.NickName}");
 
-                        if (!player.CustomProperties.ContainsKey(NetworkManager.DICE_COLOR_KEY)) 
-                            continue;
+                    //    if (!player.CustomProperties.ContainsKey(NetworkManager.DICE_COLOR_KEY)) 
+                    //        continue;
             
-                        DiceColor color = (DiceColor)player.CustomProperties[NetworkManager.DICE_COLOR_KEY];
-                        bool existPlayer = joinedPlayers.Any(onlinePlayer => onlinePlayer.SelfDiceColor == color);
+                    //    DiceColor color = (DiceColor)player.CustomProperties[NetworkManager.DICE_COLOR_KEY];
+                    //    bool existPlayer = joinedPlayers.Any(onlinePlayer => onlinePlayer.SelfDiceColor == color);
             
-                        if (!existPlayer)
-                        {
-                            JoinedPlayer instantiatedJoinedPlayer = Instantiate(joinedPlayer, joinedPlayerListParent);
-                            instantiatedJoinedPlayer.SetJoinedPlayerInfo(player.NickName, color);
-                            joinedPlayers.Add(instantiatedJoinedPlayer);
-                        }
+                    //    if (!existPlayer)
+                    //    {
+                    //        JoinedPlayer instantiatedJoinedPlayer = Instantiate(joinedPlayer, joinedPlayerListParent);
+                    //        instantiatedJoinedPlayer.SetJoinedPlayerInfo(player.NickName, color);
+                    //        joinedPlayers.Add(instantiatedJoinedPlayer);
+                    //    }
                     
-                        Debug.Log($"Exist: {existPlayer}, DiceColor: {color}, PlayerName: {player.NickName}");
-                    }
+                    //    Debug.Log($"Exist: {existPlayer}, DiceColor: {color}, PlayerName: {player.NickName}");
+                    //}
                 }
             
                 bool exists = joinedPlayers.Any(player => player.SelfDiceColor == diceColor);
@@ -926,7 +925,7 @@ public class UIManager : MonoBehaviour
                 if (!exists)
                 {
                     JoinedPlayer instantiatedJoinedPlayer = Instantiate(joinedPlayer, joinedPlayerListParent);
-                    instantiatedJoinedPlayer.SetJoinedPlayerInfo(targetedPlayer.NickName, diceColor);
+                   // instantiatedJoinedPlayer.SetJoinedPlayerInfo(targetedPlayer.NickName, diceColor);
                     joinedPlayers.Add(instantiatedJoinedPlayer);
                 }
 
@@ -939,31 +938,31 @@ public class UIManager : MonoBehaviour
                 {
                     AddMasterClientToPrivateRoom();
 
-                    var playerList = PhotonNetwork.PlayerList;
+                  //  var playerList = PhotonNetwork.PlayerList;
 
-                    foreach (var player in playerList)
-                    {
-                        if (!player.CustomProperties.ContainsKey(NetworkManager.DICE_COLOR_KEY))
-                            continue;
+                    //foreach (var player in playerList)
+                    //{
+                    //    if (!player.CustomProperties.ContainsKey(NetworkManager.DICE_COLOR_KEY))
+                    //        continue;
 
-                        DiceColor color = (DiceColor)player.CustomProperties[NetworkManager.DICE_COLOR_KEY];
+                    //    DiceColor color = (DiceColor)player.CustomProperties[NetworkManager.DICE_COLOR_KEY];
 
-                        // Check if this player has already been added based on DiceColor
-                        bool existPlayer = privateJoinedPlayers.Any(onlinePlayer => onlinePlayer.selfDiceColor == color);
+                    //    // Check if this player has already been added based on DiceColor
+                    //    bool existPlayer = privateJoinedPlayers.Any(onlinePlayer => onlinePlayer.selfDiceColor == color);
 
-                        if (!existPlayer)
-                        {
-                            InstantiateAndAddPlayer(player, color);
-                        }
+                    //    if (!existPlayer)
+                    //    {
+                    //        InstantiateAndAddPlayer(player, color);
+                    //    }
 
-                        Debug.Log($"Exist: {existPlayer}, DiceColor: {color}, PlayerName: {player.NickName}");
-                    }
+                    //    Debug.Log($"Exist: {existPlayer}, DiceColor: {color}, PlayerName: {player.NickName}");
+                    //}
                 }
 
                 // Ensure targeted player is added if not already
                 if (!privateJoinedPlayers.Any(player => player.selfDiceColor == diceColor))
                 {
-                    InstantiateAndAddPlayer(targetedPlayer, diceColor);
+                   // InstantiateAndAddPlayer(targetedPlayer, diceColor);
                 }
 
                 break;
@@ -975,26 +974,26 @@ public class UIManager : MonoBehaviour
         // Helper Method to Add Master Client
         void AddMasterClientToPrivateRoom()
         {
-            if (PhotonNetwork.MasterClient.CustomProperties.ContainsKey(NetworkManager.DICE_COLOR_KEY))
-            {
-                DiceColor masterClientDiceColor = (DiceColor)PhotonNetwork.MasterClient.CustomProperties[NetworkManager.DICE_COLOR_KEY];
+            //if (PhotonNetwork.MasterClient.CustomProperties.ContainsKey(NetworkManager.DICE_COLOR_KEY))
+            //{
+            //    DiceColor masterClientDiceColor = (DiceColor)PhotonNetwork.MasterClient.CustomProperties[NetworkManager.DICE_COLOR_KEY];
 
-                if (masterClientDiceColor != DiceColor.Unknown)
-                {
-                    PrivateJoinPlayer instantiatedJoinedPlayer = Instantiate(privateJoinedPlayer, privateJoinedMasterPlayerListParent);
-                    instantiatedJoinedPlayer.SetPrivatePlayerInfo(PhotonNetwork.MasterClient.NickName, masterClientDiceColor);
-                    privateJoinedPlayers.Add(instantiatedJoinedPlayer);
-                }
-            }
+            //    if (masterClientDiceColor != DiceColor.Unknown)
+            //    {
+            //        PrivateJoinPlayer instantiatedJoinedPlayer = Instantiate(privateJoinedPlayer, privateJoinedMasterPlayerListParent);
+            //        instantiatedJoinedPlayer.SetPrivatePlayerInfo(PhotonNetwork.MasterClient.NickName, masterClientDiceColor);
+            //        privateJoinedPlayers.Add(instantiatedJoinedPlayer);
+            //    }
+            //}
         }
 
         // Helper Method to Instantiate and Add Player
-        void InstantiateAndAddPlayer(Player player, DiceColor color)
-        {
-            PrivateJoinPlayer instantiatedJoinedPlayer = Instantiate(privateJoinedPlayer, privateJoinedPlayerListParent);
-            instantiatedJoinedPlayer.SetPrivatePlayerInfo(player.NickName, color);
-            privateJoinedPlayers.Add(instantiatedJoinedPlayer);
-        }
+        //void InstantiateAndAddPlayer(Player player, DiceColor color)
+        //{
+        //    PrivateJoinPlayer instantiatedJoinedPlayer = Instantiate(privateJoinedPlayer, privateJoinedPlayerListParent);
+        //    instantiatedJoinedPlayer.SetPrivatePlayerInfo(player.NickName, color);
+        //    privateJoinedPlayers.Add(instantiatedJoinedPlayer);
+        //}
     }
 
     public void RemoveJoinedPlayer(DiceColor diceColor)
