@@ -1,9 +1,9 @@
 using TMPro;
 using UnityEngine;
-using Photon.Pun;
-using Photon.Realtime;
+//using Photon.Pun;
+//using Photon.Realtime;
 
-public class JoinedPlayer : MonoBehaviourPunCallbacks
+public class JoinedPlayer : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI selfNameText;
     public DiceColor SelfDiceColor { get; private set; }
@@ -18,23 +18,23 @@ public class JoinedPlayer : MonoBehaviourPunCallbacks
     }
 
     // Callback when a player leaves the room
-    public override void OnPlayerLeftRoom(Player otherPlayer)
-    {
-        base.OnPlayerLeftRoom(otherPlayer);
+    //public override void OnPlayerLeftRoom(Player otherPlayer)
+    //{
+    //   // base.OnPlayerLeftRoom(otherPlayer);
 
-        Debug.Log($"Player {otherPlayer.NickName} has left the room.");
+    //    Debug.Log($"Player {otherPlayer.NickName} has left the room.");
 
-        if (PhotonNetwork.CurrentRoom.PlayerCount > 1)
-        {
-            // Update UI to show remaining players
-            UpdatePlayerList();
-        }
-        else
-        {
-            // Handle game end if only one player remains
-            HandleGameEndDueToDisconnection();
-        }
-    }
+    //    if (PhotonNetwork.CurrentRoom.PlayerCount > 1)
+    //    {
+    //        // Update UI to show remaining players
+    //        UpdatePlayerList();
+    //    }
+    //    else
+    //    {
+    //        // Handle game end if only one player remains
+    //        HandleGameEndDueToDisconnection();
+    //    }
+    //}
 
     // Updates the list of players remaining in the game
     private void UpdatePlayerList()
@@ -51,6 +51,6 @@ public class JoinedPlayer : MonoBehaviourPunCallbacks
         UIManager.Instance.popUp.ShowMessagePanel("The game has ended as all players left.");
 
         // Leave the room and return to lobby or main menu
-        PhotonNetwork.LeaveRoom();
+       // PhotonNetwork.LeaveRoom();
     }
 }

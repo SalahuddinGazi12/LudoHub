@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using UnityEngine;
 using Random = UnityEngine.Random;
-using Photon.Pun;
+//using Photon.Pun;
 using  UnityEngine.UI;
 
 public class RollingDice : MonoBehaviour
@@ -38,7 +38,7 @@ public class RollingDice : MonoBehaviour
     public Dice DiceSound;
     public DiceColor SelfDiceColor => diceColor;
     public DiceColor diceColor;
-    [SerializeField] private PhotonView photonView;
+   // [SerializeField] private PhotonView photonView;
     private bool onMouseDown;
     private Coroutine powerBarFillCoroutine;
     private Coroutine blinkingCoroutine;
@@ -214,12 +214,12 @@ public class RollingDice : MonoBehaviour
 
     private void TurnChangeHandler()
     {
-        photonView.RPC(nameof(TurnChangeHandlerRPC), RpcTarget.Others);
+       // photonView.RPC(nameof(TurnChangeHandlerRPC), RpcTarget.Others);
         
         TurnChangeHandlerRPC();
     }
 
-    [PunRPC]
+  //  [PunRPC]
     private void TurnChangeHandlerRPC()
     {
         DiceNumberSpriteHandlerForRpc();
@@ -247,7 +247,7 @@ public class RollingDice : MonoBehaviour
     {
         if (DataManager.Instance.GameType == GameType.Multiplayer)
         {
-            photonView.RPC(nameof(StopTimerRPC), RpcTarget.AllBuffered);
+           //photonView.RPC(nameof(StopTimerRPC), RpcTarget.AllBuffered);
         }
         else
         {
@@ -255,7 +255,7 @@ public class RollingDice : MonoBehaviour
         }
     }
 
-    [PunRPC]
+   // [PunRPC]
     private void StopTimerRPC()
     {
         StopTimerCoroutine();
@@ -270,7 +270,7 @@ public class RollingDice : MonoBehaviour
 
         while (timeSinceTurnTimerStarted < turnTimerSlider.maxValue && DataManager.Instance.CurrentGameState == GameState.Play )
         { 
-            photonView.RPC(nameof(UpdateTurnSliderValue), RpcTarget.Others, timeSinceTurnTimerStarted);
+           // photonView.RPC(nameof(UpdateTurnSliderValue), RpcTarget.Others, timeSinceTurnTimerStarted);
             UpdateTurnSliderValue(timeSinceTurnTimerStarted);
             yield return waitForTime;
             timeSinceTurnTimerStarted += 1;
@@ -288,14 +288,14 @@ public class RollingDice : MonoBehaviour
         if (isIdol)
         {
             turnIgnored++;
-            photonView.RPC(nameof(ReducedAvailableTurnIndicatorsRPC), RpcTarget.Others, turnIgnored);
+            //photonView.RPC(nameof(ReducedAvailableTurnIndicatorsRPC), RpcTarget.Others, turnIgnored);
             ReducedAvailableTurnIndicators();
         }
         
         
         if (turnIgnored < DataManager.Instance.MaxTurnCanIgnore)
         {
-            if(PhotonNetwork.CurrentRoom != null && PhotonNetwork.CurrentRoom.PlayerCount > 1)
+           // if(PhotonNetwork.CurrentRoom != null && PhotonNetwork.CurrentRoom.PlayerCount > 1)
                 //photonView.RPC(nameof(RollingDiceManagerRPC), RpcTarget.AllBuffered);
                 RollingDiceManagerRPC();
             
@@ -318,7 +318,7 @@ public class RollingDice : MonoBehaviour
         }
     }
     
-    [PunRPC]
+   // [PunRPC]
     private void ReducedAvailableTurnIndicatorsRPC(int currentlyIgnoredTurns)
     {
         if (availableTurnsCanIgnoreParent.transform.childCount == 0 || availableTurnsCanIgnoreParent.transform.childCount < turnIgnored) return;
@@ -331,11 +331,11 @@ public class RollingDice : MonoBehaviour
 
     private void DisconnectAfterCertainTime()
     {
-        PhotonNetwork.LeaveRoom();
-        PhotonNetwork.Disconnect();
+       // PhotonNetwork.LeaveRoom();
+       // PhotonNetwork.Disconnect();
     }
 
-    [PunRPC]
+    //[PunRPC]
     private void UpdateTurnSliderValue(int value)
     {
         turnTimerSlider.value = value;
@@ -431,13 +431,13 @@ public class RollingDice : MonoBehaviour
         
         if (DataManager.Instance.GameType == GameType.Multiplayer)
         {
-            photonView.RPC(nameof(StopPowerBarFillEffectRPC), RpcTarget.Others, randomNum);
+           // photonView.RPC(nameof(StopPowerBarFillEffectRPC), RpcTarget.Others, randomNum);
         }
 
         StopPowerBarFillEffectRPC(randomNum);
     }
     
-    [PunRPC]
+   // [PunRPC]
     private void StopPowerBarFillEffectRPC(int randomNum)
     {
         if (powerBarFillCoroutine != null)
@@ -831,7 +831,7 @@ public class RollingDice : MonoBehaviour
         }
     }
 
-    [PunRPC]
+   // [PunRPC]
     private void RollingDiceManager()
     {
         GameManager.Instance.RollingDiceManager();
@@ -843,7 +843,7 @@ public class RollingDice : MonoBehaviour
         }
     }
     
-    [PunRPC]
+   //[PunRPC]
     private void RollingDiceManagerRPC()
     {
         Debug.Log("From RollingDiceManagerRPC");

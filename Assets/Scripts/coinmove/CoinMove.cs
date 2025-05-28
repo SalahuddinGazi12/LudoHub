@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
-using Photon.Realtime;
+//using Photon.Realtime;
 public class CoinMove : MonoBehaviour
 {
     public static CoinMove instance;

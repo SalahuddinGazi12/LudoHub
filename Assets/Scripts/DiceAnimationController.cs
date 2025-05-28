@@ -1,4 +1,4 @@
-using Photon.Pun;
+//using Photon.Pun;
 using System.Collections;
 using UnityEngine;
 
@@ -7,11 +7,11 @@ public class DiceAnimationController : MonoBehaviour
     [SerializeField] private GameObject diceAnimationGobj;
     [SerializeField] private SpriteRenderer numberSprite;
     [SerializeField] private Sprite[] numberedSprites;
-    private PhotonView photonView;
+   // private PhotonView photonView;
 
     private void Awake()
     {
-        photonView = GetComponent<PhotonView>();
+       // photonView = GetComponent<PhotonView>();
     }
 
     private void Start()
@@ -24,14 +24,14 @@ public class DiceAnimationController : MonoBehaviour
     {
         if(DataManager.Instance.GameType == GameType.Multiplayer)
         {
-            photonView.RPC(nameof(AnimateAndShow), RpcTarget.AllBuffered, generatedNum, animationTime);
+           // photonView.RPC(nameof(AnimateAndShow), RpcTarget.AllBuffered, generatedNum, animationTime);
             return;
         }
 
         AnimateAndShow(generatedNum, animationTime);
     }
 
-    [PunRPC]
+   // [PunRPC]
     private void AnimateAndShow(int generatedNum, float animationTime)
     {
         animateAndShowCoroutine ??= StartCoroutine(AnimateAndShowCoroutine(generatedNum, animationTime));
@@ -62,7 +62,7 @@ public class DiceAnimationController : MonoBehaviour
 
     }
 
-    [PunRPC]
+   // [PunRPC]
     private void HideDiceRPC()
     {
         numberSprite.gameObject.SetActive(false);

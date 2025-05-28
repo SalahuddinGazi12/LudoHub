@@ -1,5 +1,5 @@
 using DG.Tweening;
-using Photon.Pun;
+//using Photon.Pun;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -18,7 +18,7 @@ public class PlayerPiece : MonoBehaviour
     public PathObjectsParent pathsParent;
     public PathPoint previousPathPoint;
     public PathPoint currentPathPoint;
-    public PhotonView photonView;
+   // public PhotonView photonView;
     public SpriteRenderer spriteRenderer;
     [SerializeField] private float blinkInterval = 0.4f;
     [field: SerializeField] public DiceColor SelfDiceColor { get; private set; }
@@ -35,7 +35,7 @@ public class PlayerPiece : MonoBehaviour
     private void Awake()
     {
         pathsParent = FindAnyObjectByType<PathObjectsParent>();
-        photonView = GetComponent<PhotonView>();
+      //  photonView = GetComponent<PhotonView>();
 
     }
 
@@ -223,10 +223,10 @@ public class PlayerPiece : MonoBehaviour
 
     public void OnPieceIsTappedToMoveRPC()
     {
-        photonView.RPC(nameof(OnPieceIsTappedToMove), RpcTarget.Others);
+       // photonView.RPC(nameof(OnPieceIsTappedToMove), RpcTarget.Others);
     }
 
-    [PunRPC]
+  //  [PunRPC]
     public virtual void OnPieceIsTappedToMove()
     {
 

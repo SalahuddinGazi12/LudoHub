@@ -1,5 +1,5 @@
-using Photon.Pun;
-using Photon.Realtime;
+//using Photon.Pun;
+//using Photon.Realtime;
 using UnityEngine;
 using TMPro;
 using System.Collections;
@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-public class NetworkManager : MonoBehaviourPunCallbacks
+public class NetworkManager : MonoBehaviour
 {
     public static NetworkManager Instance { get; private set; }
     [Header("Connection Settings")]
@@ -48,7 +48,7 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     [SerializeField] private UIManager uiManager;
     [SerializeField] private MenuManager menuManager;
     [SerializeField] private int totalvalue;
-    PhotonView pv;
+  //  PhotonView pv;
     
     private bool hasRejoined = false;
     private Coroutine rejoinTimerCoroutine;
@@ -81,19 +81,19 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     private void ConfigurePhotonSettings()
     {
         // Version and region
-        PhotonNetwork.GameVersion = gameVersion;
-        PhotonNetwork.PhotonServerSettings.AppSettings.FixedRegion = preferredRegion;
+        //PhotonNetwork.GameVersion = gameVersion;
+        //PhotonNetwork.PhotonServerSettings.AppSettings.FixedRegion = preferredRegion;
 
         // Network optimizations for Bangladesh
-        PhotonNetwork.AutomaticallySyncScene = true;
-        PhotonNetwork.SendRate = 30;
-        PhotonNetwork.SerializationRate = 15;
+        //PhotonNetwork.AutomaticallySyncScene = true;
+        //PhotonNetwork.SendRate = 30;
+        //PhotonNetwork.SerializationRate = 15;
 
-        // Timeout and reliability settings
-        var peer = PhotonNetwork.NetworkingClient.LoadBalancingPeer;
-        peer.DisconnectTimeout = 30000; // 30 seconds
-        peer.QuickResendAttempts = 3;
-        peer.SentCountAllowance = 10;
+        //// Timeout and reliability settings
+        //var peer = PhotonNetwork.NetworkingClient.LoadBalancingPeer;
+        //peer.DisconnectTimeout = 30000; // 30 seconds
+        //peer.QuickResendAttempts = 3;
+        //peer.SentCountAllowance = 10;
     }
 
 
@@ -102,13 +102,13 @@ public class NetworkManager : MonoBehaviourPunCallbacks
         //PhotonNetwork.NetworkingClient.LoadBalancingPeer.DisconnectTimeout = 30000;
         uiManager = UIManager.Instance;
         menuManager = MenuManager.Instance;
-        pv = GetComponent<PhotonView>();
+        //pv = GetComponent<PhotonView>();
     }
 
     private void OnDestroy()
     {
-        if (PhotonNetwork.IsConnected)
-            PhotonNetwork.Disconnect();
+        //if (PhotonNetwork.IsConnected)
+        //    PhotonNetwork.Disconnect();
         
         CancelInvoke(nameof(ShowOnlinePlayerCount));
     }
@@ -165,21 +165,21 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 
     public void SetPlayerNameAndIDCustomProperties()
     {
-        PhotonNetwork.LocalPlayer.NickName = DataManager.Instance.CurrentUser.name;
+        //PhotonNetwork.LocalPlayer.NickName = DataManager.Instance.CurrentUser.name;
 
-        if (DataManager.Instance.CurrentUserType != UserType.APP)
-            return;
+        //if (DataManager.Instance.CurrentUserType != UserType.APP)
+        //    return;
 
-        ExitGames.Client.Photon.Hashtable hashTable = new ExitGames.Client.Photon.Hashtable()
-        {
-            { UserUid, DataManager.Instance.CurrentUser.id }
-        };
+        //ExitGames.Client.Photon.Hashtable hashTable = new ExitGames.Client.Photon.Hashtable()
+        //{
+        //    { UserUid, DataManager.Instance.CurrentUser.id }
+        //};
 
-        PhotonNetwork.LocalPlayer.SetCustomProperties(hashTable);
+        //PhotonNetwork.LocalPlayer.SetCustomProperties(hashTable);
     }
 
-    #region Random Room
-    public void PlayWithRandomPlayer()
+#region Random Room
+public void PlayWithRandomPlayer()
     {
         uiManager.CloseAllMultiplayerPanel();
         StartToDisplayPhotonStateCoroutine();
@@ -199,13 +199,13 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 
         Debug.Log($"Looking for room with {Enum.GetName(typeof(UserType), userType)} where entry fee is {entryFee} and maxPlayer is {maxPlayer}");
 
-        ExitGames.Client.Photon.Hashtable roomProperties = new()
-        {
-            { UserTypeKey, userType },
-            { EntryFeesKey,  entryFee},
-        };
+        //ExitGames.Client.Photon.Hashtable roomProperties = new()
+        //{
+        //    { UserTypeKey, userType },
+        //    { EntryFeesKey,  entryFee},
+        //};
 
-        PhotonNetwork.JoinRandomRoom(roomProperties, maxPlayer);
+        //PhotonNetwork.JoinRandomRoom(roomProperties, maxPlayer);
     }
 
     private void CreateRandomRoom()
@@ -219,25 +219,25 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 
         Debug.Log($"Creating Looking for room with {Enum.GetName(typeof(UserType), userType)} where entry fee is {entryFee} and maxPlayer is {maxPlayer}");
 
-        RoomOptions roomOptions = new RoomOptions
-        {
-            CustomRoomPropertiesForLobby = new[] { UserTypeKey, EntryFeesKey },
-            MaxPlayers = maxPlayer,
+        //RoomOptions roomOptions = new RoomOptions
+        //{
+        //    CustomRoomPropertiesForLobby = new[] { UserTypeKey, EntryFeesKey },
+        //    MaxPlayers = maxPlayer,
 
-            IsOpen = true,
-            IsVisible = true,
+        //    IsOpen = true,
+        //    IsVisible = true,
 
-            CustomRoomProperties = new ExitGames.Client.Photon.Hashtable() { { UserTypeKey, userType }, { EntryFeesKey, entryFee } }
-        };
+        //    CustomRoomProperties = new ExitGames.Client.Photon.Hashtable() { { UserTypeKey, userType }, { EntryFeesKey, entryFee } }
+        //};
 
 
-        PhotonNetwork.CreateRoom(null, roomOptions);
+        //PhotonNetwork.CreateRoom(null, roomOptions);
     }
     #endregion\ Random Room
 
     private void ShowOnlinePlayerCount()
     {
-        uiManager.ShowOnlinePlayerCount(PhotonNetwork.PlayerList.Length);
+       // uiManager.ShowOnlinePlayerCount(PhotonNetwork.PlayerList.Length);
     }
     
     public void Connect()
@@ -249,25 +249,25 @@ public class NetworkManager : MonoBehaviourPunCallbacks
         //StartToDisplayPhotonStateCoroutine();
         uiManager.RemoveAllJoinedPlayers();
 
-        switch (PhotonNetwork.IsConnected)
-        {
-            case true when DataManager.Instance.CurrentRoomType == RoomType.Random:
-                Debug.Log("JoinRandomRoom");
-                JoinRandomRoom();
-                break;
+        //switch (PhotonNetwork.IsConnected)
+        //{
+        //    case true when DataManager.Instance.CurrentRoomType == RoomType.Random:
+        //        Debug.Log("JoinRandomRoom");
+        //        JoinRandomRoom();
+        //        break;
 
-            case true when DataManager.Instance.CurrentRoomType == RoomType.Private && DataManager.Instance.CurrentRoomMode == RoomMode.Create:
-                CreateCustomRoom();
-                break;
+        //    case true when DataManager.Instance.CurrentRoomType == RoomType.Private && DataManager.Instance.CurrentRoomMode == RoomMode.Create:
+        //        CreateCustomRoom();
+        //        break;
 
-            case true when DataManager.Instance.CurrentRoomType == RoomType.Private && DataManager.Instance.CurrentRoomMode == RoomMode.Join:
-                JoinPrivateRoom(uiManager.GetInputtedRoomId());
-                break;
+        //    case true when DataManager.Instance.CurrentRoomType == RoomType.Private && DataManager.Instance.CurrentRoomMode == RoomMode.Join:
+        //        JoinPrivateRoom(uiManager.GetInputtedRoomId());
+        //        break;
 
-            default:
-                PhotonNetwork.ConnectUsingSettings();
-                break;
-        }
+        //    default:
+        //        PhotonNetwork.ConnectUsingSettings();
+        //        break;
+        //}
 
     }
 
@@ -288,58 +288,58 @@ public class NetworkManager : MonoBehaviourPunCallbacks
         UIManager.Instance.menuManager.HideBackButton();
         SetAndShowConnectingStatus("Connecting to server...");
         
-        Debug.Log($"IsConnected: {PhotonNetwork.IsConnected}");
+      //  Debug.Log($"IsConnected: {PhotonNetwork.IsConnected}");
         Connect();
     }
 
     private void CheckBackBalanceAndRequestToGetDiceColor()
     {
-        if (!PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey(EntryFeesKey)) 
-            return;
+        //if (!PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey(EntryFeesKey)) 
+        //    return;
         
-        var feeObj = PhotonNetwork.CurrentRoom.CustomProperties[EntryFeesKey];
-        int entryFee = Convert.ToInt32(feeObj);
+       // var feeObj = PhotonNetwork.CurrentRoom.CustomProperties[EntryFeesKey];
+       // int entryFee = Convert.ToInt32(feeObj);
 
-        Debug.Log($"EntryFees: {entryFee}, Coins: {DataManager.Instance.Coins}, feeObj: {feeObj}");
+       // Debug.Log($"EntryFees: {entryFee}, Coins: {DataManager.Instance.Coins}, feeObj: {feeObj}");
 
-        if (entryFee > DataManager.Instance.Coins)
-        {
-            canJoin = false;
-            DataManager.Instance.SetCurrentRoomMode(RoomMode.Null);
-            DataManager.Instance.SetCurrentRoomType(RoomType.Private);
-            ShowUnableToJoinRoomDueToLowBalance();
-            SetAndShowConnectingStatus("");
-            Debug.Log("Returning due to no coins");
-            return;
-        }
+        //if (entryFee > DataManager.Instance.Coins)
+        //{
+        //    canJoin = false;
+        //    DataManager.Instance.SetCurrentRoomMode(RoomMode.Null);
+        //    DataManager.Instance.SetCurrentRoomType(RoomType.Private);
+        //    ShowUnableToJoinRoomDueToLowBalance();
+        //    SetAndShowConnectingStatus("");
+        //    Debug.Log("Returning due to no coins");
+        //    return;
+        //}
 
-        DataManager.Instance.SetCurrentEntryFees(entryFee);
-        RequestMasterPlayerToAssignDiceColor();
+      //  DataManager.Instance.SetCurrentEntryFees(entryFee);
+       // RequestMasterPlayerToAssignDiceColor();
     }
 
     #region Photon Callbacks
-    public override void OnConnectedToMaster()
-    {
-        //JoinOrCreateRandomRoom();
+    //public override void OnConnectedToMaster()
+    //{
+    //    //JoinOrCreateRandomRoom();
 
-        switch (DataManager.Instance.CurrentRoomType)
-        {
-            case RoomType.Random:
-                SetAndShowConnectingStatus("Connected to server. Joining room...");
-                JoinRandomRoom();
-                break;
+    //    switch (DataManager.Instance.CurrentRoomType)
+    //    {
+    //        case RoomType.Random:
+    //            SetAndShowConnectingStatus("Connected to server. Joining room...");
+    //            JoinRandomRoom();
+    //            break;
 
-            case RoomType.Private when DataManager.Instance.CurrentRoomMode == RoomMode.Create:
-                SetAndShowConnectingStatus("Connected to server. Creating new room...");
-                CreateCustomRoom();
-                break;
+    //        case RoomType.Private when DataManager.Instance.CurrentRoomMode == RoomMode.Create:
+    //            SetAndShowConnectingStatus("Connected to server. Creating new room...");
+    //            CreateCustomRoom();
+    //            break;
 
-            case RoomType.Private when DataManager.Instance.CurrentRoomMode == RoomMode.Join:
-                SetAndShowConnectingStatus("Connected to server. Joining room...");
-                JoinPrivateRoom(UIManager.Instance.GetInputtedRoomId());
-                break;
-        }
-    }
+    //        case RoomType.Private when DataManager.Instance.CurrentRoomMode == RoomMode.Join:
+    //            SetAndShowConnectingStatus("Connected to server. Joining room...");
+    //            JoinPrivateRoom(UIManager.Instance.GetInputtedRoomId());
+    //            break;
+    //    }
+    //}
 
 
     //private void JoinOrCreateRandomRoom()
@@ -347,67 +347,67 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     //    PhotonNetwork.JoinRandomRoom();
     //}
 
-    public override void OnLeftRoom()
-    {
-        //MainPanel.SetActive(true);
-        //GamePanel.SetActive(false);
-        //ConnectingPanel.SetActive(false);
-        PhotonNetwork.Disconnect();
-        //SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-    }
+    //public override void OnLeftRoom()
+    //{
+    //    //MainPanel.SetActive(true);
+    //    //GamePanel.SetActive(false);
+    //    //ConnectingPanel.SetActive(false);
+    //    PhotonNetwork.Disconnect();
+    //    //SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    //}
 
-    public override void OnDisconnected(DisconnectCause cause)
-    {
-        uiManager.RemoveAllJoinedPlayers();
-        Debug.Log($"Disconnected: {cause}");
+   // public override void OnDisconnected(DisconnectCause cause)
+    //{
+    //    uiManager.RemoveAllJoinedPlayers();
+    //    Debug.Log($"Disconnected: {cause}");
 
-        if (DataManager.Instance.CurrentGameState == GameState.Init)
-        {
-            CancelInvoke(nameof(CountdownToStart));
-            menuManager.ShowNoInternetPopUp();
-        }
-        else if (DataManager.Instance.CurrentGameState != GameState.Play)
-        {
-            HandleDisconnection(cause);
-        }
+    //    if (DataManager.Instance.CurrentGameState == GameState.Init)
+    //    {
+    //        CancelInvoke(nameof(CountdownToStart));
+    //        menuManager.ShowNoInternetPopUp();
+    //    }
+    //    else if (DataManager.Instance.CurrentGameState != GameState.Play)
+    //    {
+    //        HandleDisconnection(cause);
+    //    }
         
         
-        // if (cause == DisconnectCause.Exception || cause == DisconnectCause.ExceptionOnConnect)
-        // {
-        //     // Start a 30-second timer to wait for reconnection
-        //     if (rejoinTimerCoroutine != null)
-        //     {
-        //         StopCoroutine(rejoinTimerCoroutine);
-        //     }
-        //     rejoinTimerCoroutine = StartCoroutine(RejoinTimer());
-        //     
-        //     // Try to reconnect and rejoin
-        //     PhotonNetwork.ReconnectAndRejoin();
-        // }
-    }
+    //    // if (cause == DisconnectCause.Exception || cause == DisconnectCause.ExceptionOnConnect)
+    //    // {
+    //    //     // Start a 30-second timer to wait for reconnection
+    //    //     if (rejoinTimerCoroutine != null)
+    //    //     {
+    //    //         StopCoroutine(rejoinTimerCoroutine);
+    //    //     }
+    //    //     rejoinTimerCoroutine = StartCoroutine(RejoinTimer());
+    //    //     
+    //    //     // Try to reconnect and rejoin
+    //    //     PhotonNetwork.ReconnectAndRejoin();
+    //    // }
+    //}
     
-    private void HandleDisconnection(DisconnectCause cause)
-    {
-        switch (cause)
-        {
-            case DisconnectCause.ClientTimeout:
-            case DisconnectCause.ServerTimeout:
-                // Debug.Log("Timeout occurred. Attempting to reconnect...");
-                // PhotonNetwork.ReconnectAndRejoin();
-                // break;
-            case DisconnectCause.DisconnectByServerLogic:
-                Debug.Log("Disconnected by server logic. Returning to main menu.");
-                // Load main menu or show appropriate UI
-                uiManager.OnGameFinished(DiceColor.Unknown);
-                break;
+    //private void HandleDisconnection(DisconnectCause cause)
+    //{
+    //    switch (cause)
+    //    {
+    //        case DisconnectCause.ClientTimeout:
+    //        case DisconnectCause.ServerTimeout:
+    //            // Debug.Log("Timeout occurred. Attempting to reconnect...");
+    //            // PhotonNetwork.ReconnectAndRejoin();
+    //            // break;
+    //        case DisconnectCause.DisconnectByServerLogic:
+    //            Debug.Log("Disconnected by server logic. Returning to main menu.");
+    //            // Load main menu or show appropriate UI
+    //            uiManager.OnGameFinished(DiceColor.Unknown);
+    //            break;
 
-            default:
-                Debug.Log("Unhandled disconnection cause. Returning to main menu.");
-                // Load main menu or show appropriate UI
-                uiManager.OnGameFinished(DiceColor.Unknown);
-                break;
-        }
-    }
+    //        default:
+    //            Debug.Log("Unhandled disconnection cause. Returning to main menu.");
+    //            // Load main menu or show appropriate UI
+    //            uiManager.OnGameFinished(DiceColor.Unknown);
+    //            break;
+    //    }
+    //}
     
     private IEnumerator RejoinTimer()
     {
@@ -425,7 +425,7 @@ public class NetworkManager : MonoBehaviourPunCallbacks
         {
             // If the player hasn't rejoined in 30 seconds, disconnect them
             Debug.Log("Rejoin timeout. Disconnecting from the room.");
-            PhotonNetwork.LeaveRoom();
+         //   PhotonNetwork.LeaveRoom();
             
             // Optionally, you can set a flag or use PlayerPrefs to ensure
             // the player cannot attempt to join the room again
@@ -433,69 +433,69 @@ public class NetworkManager : MonoBehaviourPunCallbacks
         }
     }
 
-    public override void OnErrorInfo(ErrorInfo errorInfo)
-    {
-        Debug.Log($"OnErrorInfo: {errorInfo}");
-    }
+    //public override void OnErrorInfo(ErrorInfo errorInfo)
+    //{
+    //    Debug.Log($"OnErrorInfo: {errorInfo}");
+    //}
 
-    public override void OnPlayerEnteredRoom(Player newPlayer)
-    {
+    //public override void OnPlayerEnteredRoom(Player newPlayer)
+    //{
 
-    }
+    //}
 
-    public override void OnJoinRoomFailed(short returnCode, string message)
-    {
-        Debug.LogError($"OnJoinRoomFailed, Error Code: {returnCode}, Message: {message}");
-        uiManager.errorPopUp.ShowMessagePanel(message);
-    }
+    //public override void OnJoinRoomFailed(short returnCode, string message)
+    //{
+    //    Debug.LogError($"OnJoinRoomFailed, Error Code: {returnCode}, Message: {message}");
+    //    uiManager.errorPopUp.ShowMessagePanel(message);
+    //}
 
-    public override void OnJoinRandomFailed(short returnCode, string message)
-    {
-        SetAndShowConnectingStatus("No available rooms. Creating a new room...");
+    //public override void OnJoinRandomFailed(short returnCode, string message)
+    //{
+    //    SetAndShowConnectingStatus("No available rooms. Creating a new room...");
 
-        CreateRandomRoom();
-    }
+    //    CreateRandomRoom();
+    //}
     
-    public override void OnJoinedRoom()
-    {
-        if (DataManager.Instance.CurrentGameState == GameState.Play)
-        {
-            // If the player successfully rejoins, stop the timer
-            hasRejoined = true;
-            if (rejoinTimerCoroutine != null)
-            {
-                StopCoroutine(rejoinTimerCoroutine);
-            }
+    //public override void OnJoinedRoom()
+    //{
+    //    if (DataManager.Instance.CurrentGameState == GameState.Play)
+    //    {
+    //        // If the player successfully rejoins, stop the timer
+    //        hasRejoined = true;
+    //        if (rejoinTimerCoroutine != null)
+    //        {
+    //            StopCoroutine(rejoinTimerCoroutine);
+    //        }
         
-            Debug.Log("Successfully rejoined the room.");
-            return;
-        }
+    //        Debug.Log("Successfully rejoined the room.");
+    //        return;
+    //    }
         
-        Debug.Log("OnJoinedRoom");
-        ConnectingPanel.SetActive(true);
-        GamePanel.SetActive(false);
-        ConnectingStatusText.text = "Waiting for players to join...";
+    //    Debug.Log("OnJoinedRoom");
+    //    ConnectingPanel.SetActive(true);
+    //    GamePanel.SetActive(false);
+    //    ConnectingStatusText.text = "Waiting for players to join...";
 
-        switch (DataManager.Instance.CurrentRoomType)
-        {
-            case RoomType.Random when PhotonNetwork.IsMasterClient:
-                UpdateJoinedPlayerDiceColorCustomProperties(DiceColor.Red, PhotonNetwork.LocalPlayer);
-                photonView.RPC(nameof(StartCountDown), RpcTarget.All, maxJoinWaitingTime);
-                return;
+    //    switch (DataManager.Instance.CurrentRoomType)
+    //    {
+    //        case RoomType.Random when PhotonNetwork.IsMasterClient:
+    //            UpdateJoinedPlayerDiceColorCustomProperties(DiceColor.Red, PhotonNetwork.LocalPlayer);
+    //            photonView.RPC(nameof(StartCountDown), RpcTarget.All, maxJoinWaitingTime);
+    //            return;
             
-            case RoomType.Random when !PhotonNetwork.IsMasterClient:
-                RequestMasterPlayerToAssignDiceColor();
-                return;
+    //        case RoomType.Random when !PhotonNetwork.IsMasterClient:
+    //            RequestMasterPlayerToAssignDiceColor();
+    //            return;
             
-            case RoomType.Private when DataManager.Instance.CurrentRoomMode == RoomMode.Join:
-                CheckBackBalanceAndRequestToGetDiceColor();
-                return;
+    //        case RoomType.Private when DataManager.Instance.CurrentRoomMode == RoomMode.Join:
+    //            CheckBackBalanceAndRequestToGetDiceColor();
+    //            return;
             
-            case RoomType.Private when DataManager.Instance.CurrentRoomMode == RoomMode.Create:
-                UpdateJoinedPlayerDiceColorCustomProperties(DiceColor.Red, PhotonNetwork.LocalPlayer);
-                return;
-        }
-    }
+    //        case RoomType.Private when DataManager.Instance.CurrentRoomMode == RoomMode.Create:
+    //            UpdateJoinedPlayerDiceColorCustomProperties(DiceColor.Red, PhotonNetwork.LocalPlayer);
+    //            return;
+    //    }
+    //}
 
     //public override void OnJoinedLobby()
     //{
@@ -503,154 +503,154 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     //    JoinOrCreateRandomRoom();
     //}
     #endregion Photon Callbacks
-    private void RequestMasterPlayerToAssignDiceColor()
-    {
-        photonView.RPC(nameof(RequestMasterPlayerToAssignDiceColorRPC), RpcTarget.MasterClient, PhotonNetwork.LocalPlayer.ActorNumber);
-    }
+    //private void RequestMasterPlayerToAssignDiceColor()
+    //{
+    //    photonView.RPC(nameof(RequestMasterPlayerToAssignDiceColorRPC), RpcTarget.MasterClient, PhotonNetwork.LocalPlayer.ActorNumber);
+    //}
 
-    [PunRPC]
-    private void RequestMasterPlayerToAssignDiceColorRPC(int actorNumber)
-    {
-        Player player = PhotonNetwork.CurrentRoom.Players[actorNumber];
+    //[PunRPC]
+    //private void RequestMasterPlayerToAssignDiceColorRPC(int actorNumber)
+    //{
+    //    Player player = PhotonNetwork.CurrentRoom.Players[actorNumber];
         
-        AssignDiceColorToJoinedPlayer(player);
-    }
+    //    AssignDiceColorToJoinedPlayer(player);
+    //}
 
-    private void AssignDiceColorToJoinedPlayer(Player newPlayer)
-    {
-        Debug.Log($"NewPlayerJoined: {newPlayer.NickName}");
+    //private void AssignDiceColorToJoinedPlayer(Player newPlayer)
+    //{
+    //    Debug.Log($"NewPlayerJoined: {newPlayer.NickName}");
 
-        //if (DataManager.Instance.MaxPlayerNumberForCurrentBoard == 2)
-        //{
-        //    UpdateJoinedPlayerDiceColorCustomProperties(DiceColor.Yellow, newPlayer);
-        //    return;
-        //}
+    //    //if (DataManager.Instance.MaxPlayerNumberForCurrentBoard == 2)
+    //    //{
+    //    //    UpdateJoinedPlayerDiceColorCustomProperties(DiceColor.Yellow, newPlayer);
+    //    //    return;
+    //    //}
 
-        switch (PhotonNetwork.CurrentRoom.PlayerCount)
-        {
-            default:
-            case 2:
-                UpdateJoinedPlayerDiceColorCustomProperties(DiceColor.Yellow, newPlayer);
-                break;
+    //    switch (PhotonNetwork.CurrentRoom.PlayerCount)
+    //    {
+    //        default:
+    //        case 2:
+    //            UpdateJoinedPlayerDiceColorCustomProperties(DiceColor.Yellow, newPlayer);
+    //            break;
 
-            case 3:
-                UpdateJoinedPlayerDiceColorCustomProperties(DiceColor.Blue, newPlayer);
-                break;
+    //        case 3:
+    //            UpdateJoinedPlayerDiceColorCustomProperties(DiceColor.Blue, newPlayer);
+    //            break;
 
-            case 4:
-                UpdateJoinedPlayerDiceColorCustomProperties(DiceColor.Green, newPlayer);
-                break;
-        }
-    }
+    //        case 4:
+    //            UpdateJoinedPlayerDiceColorCustomProperties(DiceColor.Green, newPlayer);
+    //            break;
+    //    }
+    //}
 
-    public override void OnPlayerLeftRoom(Player otherPlayer)
-    {
-        if (DataManager.Instance.CurrentGameState == GameState.Play)
-        {
-            Debug.Log($"OnPlayerLeft, PlayerCount: {PhotonNetwork.CurrentRoom.PlayerCount}, LeftPlayerName: {otherPlayer.NickName}");
+    //public override void OnPlayerLeftRoom(Player otherPlayer)
+    //{
+    //    if (DataManager.Instance.CurrentGameState == GameState.Play)
+    //    {
+    //        Debug.Log($"OnPlayerLeft, PlayerCount: {PhotonNetwork.CurrentRoom.PlayerCount}, LeftPlayerName: {otherPlayer.NickName}");
 
-            // if (DataManager.Instance.MaxPlayerNumberForCurrentBoard == 2 && DataManager.Instance.CurrentGameState == GameState.Play)
-            // {
-            //     GameManager.Instance.RaiseGameOverCustomEvent(DataManager.Instance.OwnDiceColor);
-            //     return;
-            // }
-            Debug.Log($"OnPlayerLeft, PlayerCount: {PhotonNetwork.CurrentRoom.PlayerCount}, LeftPlayerName: {otherPlayer.NickName}, LocalPlayer: {PhotonNetwork.LocalPlayer.NickName}");
-            switch (PhotonNetwork.CurrentRoom.PlayerCount)
-            {
-                case < 2:
-                    GameManager.Instance.RaiseGameOverCustomEvent(DataManager.Instance.OwnDiceColor);
-                    return;
-                case >= 2 when otherPlayer.CustomProperties.ContainsKey(DICE_COLOR_KEY):
-                    DiceColor color = (DiceColor)otherPlayer.CustomProperties[DICE_COLOR_KEY];
-                    GameManager.Instance.RemovePlayerToCurrentRoomPlayersList(color);
-                    return;
-            }
-        }
+    //        // if (DataManager.Instance.MaxPlayerNumberForCurrentBoard == 2 && DataManager.Instance.CurrentGameState == GameState.Play)
+    //        // {
+    //        //     GameManager.Instance.RaiseGameOverCustomEvent(DataManager.Instance.OwnDiceColor);
+    //        //     return;
+    //        // }
+    //        Debug.Log($"OnPlayerLeft, PlayerCount: {PhotonNetwork.CurrentRoom.PlayerCount}, LeftPlayerName: {otherPlayer.NickName}, LocalPlayer: {PhotonNetwork.LocalPlayer.NickName}");
+    //        switch (PhotonNetwork.CurrentRoom.PlayerCount)
+    //        {
+    //            case < 2:
+    //                GameManager.Instance.RaiseGameOverCustomEvent(DataManager.Instance.OwnDiceColor);
+    //                return;
+    //            case >= 2 when otherPlayer.CustomProperties.ContainsKey(DICE_COLOR_KEY):
+    //                DiceColor color = (DiceColor)otherPlayer.CustomProperties[DICE_COLOR_KEY];
+    //                GameManager.Instance.RemovePlayerToCurrentRoomPlayersList(color);
+    //                return;
+    //        }
+    //    }
 
-        if (PhotonNetwork.CurrentRoom.PlayerCount < 2)
-        {
-            AbandonedRoomDueToInsufficientMembers();
-        }
+    //    if (PhotonNetwork.CurrentRoom.PlayerCount < 2)
+    //    {
+    //        AbandonedRoomDueToInsufficientMembers();
+    //    }
 
-        if (otherPlayer.CustomProperties.ContainsKey(DICE_COLOR_KEY))
-        {
-            UIManager.Instance.RemoveJoinedPlayer((DiceColor)otherPlayer.CustomProperties[DICE_COLOR_KEY]);
-        }
-    }
+    //    if (otherPlayer.CustomProperties.ContainsKey(DICE_COLOR_KEY))
+    //    {
+    //        UIManager.Instance.RemoveJoinedPlayer((DiceColor)otherPlayer.CustomProperties[DICE_COLOR_KEY]);
+    //    }
+    //}
 
-    private void HandlePlayerDisconnection(Player disconnectedPlayer)
-    {
-        // Handle any logic needed when a remote player disconnects
-        // e.g., update UI, redistribute resources, etc.
-    }
+    //private void HandlePlayerDisconnection(Player disconnectedPlayer)
+    //{
+    //    // Handle any logic needed when a remote player disconnects
+    //    // e.g., update UI, redistribute resources, etc.
+    //}
 
-    private void HandleSelfDisconnection(DisconnectCause cause)
-    {
-        // Handle any logic needed when the local player disconnects
-        // e.g., show a reconnect UI or return to the main menu
-        if (cause == DisconnectCause.ClientTimeout )
-        {
-            Debug.Log("Disconnected due to timeout. Returning to the main menu.");
-            //PhotonNetwork.LoadLevel("MainMenu"); // Example: Return to the main menu
-        }
-    }
+    //private void HandleSelfDisconnection(DisconnectCause cause)
+    //{
+    //    // Handle any logic needed when the local player disconnects
+    //    // e.g., show a reconnect UI or return to the main menu
+    //    if (cause == DisconnectCause.ClientTimeout )
+    //    {
+    //        Debug.Log("Disconnected due to timeout. Returning to the main menu.");
+    //        //PhotonNetwork.LoadLevel("MainMenu"); // Example: Return to the main menu
+    //    }
+    //}
 
-    public void UpdateJoinedPlayerDiceColorCustomProperties(DiceColor diceColor, Player newPlayer)
-    {
-        Debug.Log($"UpdateJoinedPlayerDiceColorCustomProperties for {newPlayer.NickName}, {diceColor}");
+    //public void UpdateJoinedPlayerDiceColorCustomProperties(DiceColor diceColor, Player newPlayer)
+    //{
+    //    Debug.Log($"UpdateJoinedPlayerDiceColorCustomProperties for {newPlayer.NickName}, {diceColor}");
 
-        // Define the new custom properties for Player2
-        ExitGames.Client.Photon.Hashtable customProperties = new ExitGames.Client.Photon.Hashtable() { { DICE_COLOR_KEY, (int)diceColor } };
+    //    // Define the new custom properties for Player2
+    //   // ExitGames.Client.Photon.Hashtable customProperties = new ExitGames.Client.Photon.Hashtable() { { DICE_COLOR_KEY, (int)diceColor } };
 
-        // Update Player2's custom properties
-        newPlayer.SetCustomProperties(customProperties);
-    }
+    //    // Update Player2's custom properties
+    //    newPlayer.SetCustomProperties(customProperties);
+    //}
 
-    public override void OnPlayerPropertiesUpdate(Player targetPlayer, ExitGames.Client.Photon.Hashtable changedProps)
-    {
-        DiceColor diceColor = DiceColor.Unknown;
+    //public override void OnPlayerPropertiesUpdate(Player targetPlayer, ExitGames.Client.Photon.Hashtable changedProps)
+    //{
+    //    DiceColor diceColor = DiceColor.Unknown;
         
-        if (changedProps.ContainsKey(DICE_COLOR_KEY))
-        {
-            diceColor = (DiceColor)changedProps[DICE_COLOR_KEY];
-            // Apply the new health value to Player2's data
-            Debug.Log($"DiceColor: {diceColor}, PlayerName: {targetPlayer.NickName}, CanJoin: {canJoin}");
-        }
+    //    if (changedProps.ContainsKey(DICE_COLOR_KEY))
+    //    {
+    //        diceColor = (DiceColor)changedProps[DICE_COLOR_KEY];
+    //        // Apply the new health value to Player2's data
+    //        Debug.Log($"DiceColor: {diceColor}, PlayerName: {targetPlayer.NickName}, CanJoin: {canJoin}");
+    //    }
         
-        // Check if the custom properties updated are for Player2 (this player)
-        if (targetPlayer == PhotonNetwork.LocalPlayer)
-        {
-            // Example: Handle the custom properties that have been updated
-            DataManager.Instance.SetOwnDiceColor(diceColor);
-            DataManager.Instance.SetMaxPlayerNumberForCurrentBoard((byte)PhotonNetwork.CurrentRoom.MaxPlayers);
-        }
+    //    // Check if the custom properties updated are for Player2 (this player)
+    //    if (targetPlayer == PhotonNetwork.LocalPlayer)
+    //    {
+    //        // Example: Handle the custom properties that have been updated
+    //        DataManager.Instance.SetOwnDiceColor(diceColor);
+    //        DataManager.Instance.SetMaxPlayerNumberForCurrentBoard((byte)PhotonNetwork.CurrentRoom.MaxPlayers);
+    //    }
 
-        switch (PhotonNetwork.IsMasterClient)
-        {
-            case true when diceColor != DiceColor.Unknown && DataManager.Instance.CurrentRoomType == RoomType.Private:
-                UIManager.Instance.InstantiateJoinedPlayer(diceColor, targetPlayer, OpenPrivateJoinedPlayerPanel);
-                return;
+    //    switch (PhotonNetwork.IsMasterClient)
+    //    {
+    //        case true when diceColor != DiceColor.Unknown && DataManager.Instance.CurrentRoomType == RoomType.Private:
+    //            UIManager.Instance.InstantiateJoinedPlayer(diceColor, targetPlayer, OpenPrivateJoinedPlayerPanel);
+    //            return;
             
-            case true when diceColor != DiceColor.Unknown && DataManager.Instance.CurrentRoomType == RoomType.Random:
-                UIManager.Instance.InstantiateJoinedPlayer(diceColor, targetPlayer, OpenJoinMultiplayerPanel);
-                return;
+    //        case true when diceColor != DiceColor.Unknown && DataManager.Instance.CurrentRoomType == RoomType.Random:
+    //            UIManager.Instance.InstantiateJoinedPlayer(diceColor, targetPlayer, OpenJoinMultiplayerPanel);
+    //            return;
             
-            case true when DataManager.Instance.CurrentRoomType == RoomType.Private && PhotonNetwork.CurrentRoom.PlayerCount == DataManager.Instance.MaxPlayerNumberForCurrentBoard:
-                UIManager.Instance.InstantiateJoinedPlayer(diceColor, targetPlayer);
-                Invoke(nameof(StartGame), 4);
-                break;
-        }
+    //        case true when DataManager.Instance.CurrentRoomType == RoomType.Private && PhotonNetwork.CurrentRoom.PlayerCount == DataManager.Instance.MaxPlayerNumberForCurrentBoard:
+    //            UIManager.Instance.InstantiateJoinedPlayer(diceColor, targetPlayer);
+    //            Invoke(nameof(StartGame), 4);
+    //            break;
+    //    }
         
-        switch (canJoin)
-        {
-            case true when DataManager.Instance.CurrentRoomType == RoomType.Random:
-                UIManager.Instance.InstantiateJoinedPlayer(diceColor, targetPlayer, OpenJoinMultiplayerPanel);
-                break;
-            case true when DataManager.Instance.CurrentRoomType == RoomType.Private:
-                UIManager.Instance.InstantiateJoinedPlayer(diceColor, targetPlayer, OpenPrivateJoinedPlayerPanel);
-                break;
-        }
-    }
+    //    switch (canJoin)
+    //    {
+    //        case true when DataManager.Instance.CurrentRoomType == RoomType.Random:
+    //            UIManager.Instance.InstantiateJoinedPlayer(diceColor, targetPlayer, OpenJoinMultiplayerPanel);
+    //            break;
+    //        case true when DataManager.Instance.CurrentRoomType == RoomType.Private:
+    //            UIManager.Instance.InstantiateJoinedPlayer(diceColor, targetPlayer, OpenPrivateJoinedPlayerPanel);
+    //            break;
+    //    }
+    //}
 
     private void OpenJoinMultiplayerPanel()
     {
@@ -662,7 +662,7 @@ public class NetworkManager : MonoBehaviourPunCallbacks
         UIManager.Instance.OpenPrivateJoinedPlayerPanel(currentRoomId);
     }
 
-    [PunRPC]
+  //  [PunRPC]
     public void StartCountDown(int time)
     {
         timer = time;
@@ -674,28 +674,28 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 
     private void CountdownToStart()
     {
-        if (PhotonNetwork.IsMasterClient)
-        {
-            timer -= 1f;
-            pv.RPC(nameof(UpdateCountdownDisplay), RpcTarget.AllBuffered, timer);
-        }
+        //if (PhotonNetwork.IsMasterClient)
+        //{
+        //    timer -= 1f;
+        //    pv.RPC(nameof(UpdateCountdownDisplay), RpcTarget.AllBuffered, timer);
+        //}
 
-        if (!(timer <= 0) && PhotonNetwork.CurrentRoom.PlayerCount != DataManager.Instance.MaxPlayerNumberForCurrentBoard) 
-            return;
+        //if (!(timer <= 0) && PhotonNetwork.CurrentRoom.PlayerCount != DataManager.Instance.MaxPlayerNumberForCurrentBoard) 
+        //    return;
         
-        CancelInvoke(nameof(CountdownToStart));
+        //CancelInvoke(nameof(CountdownToStart));
 
-        if (PhotonNetwork.CurrentRoom.PlayerCount >= 2)
-        {
-            StartGame();
-        }
-        else
-        {
-            CancelAndReturnToMainMenu();
-        }
+        //if (PhotonNetwork.CurrentRoom.PlayerCount >= 2)
+        //{
+        //    StartGame();
+        //}
+        //else
+        //{
+        //    CancelAndReturnToMainMenu();
+        //}
     }
 
-    [PunRPC]
+   // [PunRPC]
     private void UpdateCountdownDisplay(float time)
     {
         uiManager.UpdateCountDownTimerText($"Game starting in {Mathf.Ceil(time)} seconds...");
@@ -703,14 +703,14 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 
     private void AbandonedRoomDueToInsufficientMembers()
     {
-        PhotonNetwork.Disconnect();
+       // PhotonNetwork.Disconnect();
         Time.timeScale = 0;
         UIManager.Instance.errorPopUp.ShowMessagePanel("The room has been abandoned, try to create or join an another room.");
     }
     
     public void StartGame()
     {
-        PhotonNetwork.CurrentRoom.IsOpen = false;
+       // PhotonNetwork.CurrentRoom.IsOpen = false;
         
         if (DataManager.Instance.CurrentUserType == UserType.APP)
         {
@@ -718,17 +718,17 @@ public class NetworkManager : MonoBehaviourPunCallbacks
             return;
         }
 
-        pv.RPC(nameof(OnGameStart), RpcTarget.AllBuffered);
+       // pv.RPC(nameof(OnGameStart), RpcTarget.AllBuffered);
     }
 
-    [PunRPC]
+   // [PunRPC]
     private void OnGameStart()
     {
         StartCoroutine(Animtionplay());
 
     }
     
-    [PunRPC]
+   // [PunRPC]
     private void OnGameStartWithGameSession(string session)
     {
         DataManager.Instance.SetSessionId(session);
@@ -754,7 +754,7 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 
         GameObject.Find("VS Image").GetComponent<Animator>().enabled = true;
 
-        totalvalue = PhotonNetwork.CurrentRoom.PlayerCount * DataManager.Instance.CurrentEntryFee;
+        //totalvalue = PhotonNetwork.CurrentRoom.PlayerCount * DataManager.Instance.CurrentEntryFee;
 
         if (DataManager.Instance.CurrentRoomType == RoomType.Random)
         {       
@@ -772,7 +772,7 @@ public class NetworkManager : MonoBehaviourPunCallbacks
         ConnectingPanel.SetActive(false);
         GamePanel.SetActive(true);
 
-        DataManager.Instance.SetMaxPlayerNumberForCurrentBoard((byte)PhotonNetwork.CurrentRoom.PlayerCount);
+       // DataManager.Instance.SetMaxPlayerNumberForCurrentBoard((byte)PhotonNetwork.CurrentRoom.PlayerCount);
 
         DataManager.Instance.SetCurrentGameState(GameState.Play);
         uiManager.StartMultiplayerGame();
@@ -781,7 +781,7 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 
     private void CancelAndReturnToMainMenu()
     {
-        PhotonNetwork.LeaveRoom();
+      //  PhotonNetwork.LeaveRoom();
         uiManager.UpdateCountDownTimerText("Not enough players joined. Returning to the main menu...");
         uiManager.AddBackButtonAction();
         CancelInvoke(nameof(ShowOnlinePlayerCount));
@@ -795,16 +795,16 @@ public class NetworkManager : MonoBehaviourPunCallbacks
         WWWForm wwwForm = new WWWForm();
 
         wwwForm.AddField(GameId, DataManager.Instance.GameId);
-        wwwForm.AddField(HostId, PhotonNetwork.MasterClient.CustomProperties[UserUid].ToString());
+     //   wwwForm.AddField(HostId, PhotonNetwork.MasterClient.CustomProperties[UserUid].ToString());
 
-        foreach (var player in PhotonNetwork.PlayerList)
-        {
-            //uids.Add(player.CustomProperties[UserUid].ToString());
-            wwwForm.AddField("users[]", player.CustomProperties[UserUid].ToString());
-            Debug.Log($"Name: {player.NickName}, Id; {player.CustomProperties[UserUid]}");
-        }
+        //foreach (var player in PhotonNetwork.PlayerList)
+        //{
+        //    //uids.Add(player.CustomProperties[UserUid].ToString());
+        //    wwwForm.AddField("users[]", player.CustomProperties[UserUid].ToString());
+        //    Debug.Log($"Name: {player.NickName}, Id; {player.CustomProperties[UserUid]}");
+        //}
 
-        wwwForm.AddField(RoomId, PhotonNetwork.CurrentRoom.Name);
+       // wwwForm.AddField(RoomId, PhotonNetwork.CurrentRoom.Name);
         wwwForm.AddField(BoardAmount, DataManager.Instance.CurrentEntryFee);
 
 
@@ -814,7 +814,7 @@ public class NetworkManager : MonoBehaviourPunCallbacks
             
             string data = Encoding.UTF8.GetString(byteData);
             
-            Debug.Log(response + ", CurrentBoardPrize: " + DataManager.Instance.CurrentEntryFee + "Session Response: " + response + " RoomId: " + PhotonNetwork.CurrentRoom.Name);
+            Debug.Log(response + ", CurrentBoardPrize: " + DataManager.Instance.CurrentEntryFee + "Session Response: " + response + " RoomId: " );
             SessionInitResponse sessionInitResponse = JsonUtility.FromJson<SessionInitResponse>(response);
 
             if (sessionInitResponse is { status: true })
@@ -823,7 +823,7 @@ public class NetworkManager : MonoBehaviourPunCallbacks
                 
                 Debug.Log($"GameSession: {sessionInitResponse.game_session}, Data: {DataManager.Instance.SessionId}");
 
-                pv.RPC(nameof(OnGameStartWithGameSession), RpcTarget.AllBuffered, sessionInitResponse.game_session);
+               // pv.RPC(nameof(OnGameStartWithGameSession), RpcTarget.AllBuffered, sessionInitResponse.game_session);
 
                 return;
             }
@@ -859,20 +859,20 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 
         Debug.Log($"Creating Custom room for {userType} with {entryFee} fee with MaxPlayer: {DataManager.Instance.MaxPlayerNumberForCurrentBoard}");
 
-        RoomOptions roomOptions = new RoomOptions
-        {
-            CustomRoomPropertiesForLobby = new[] { UserTypeKey, EntryFeesKey },
-            MaxPlayers = DataManager.Instance.MaxPlayerNumberForCurrentBoard,
+        //RoomOptions roomOptions = new RoomOptions
+        //{
+        //    CustomRoomPropertiesForLobby = new[] { UserTypeKey, EntryFeesKey },
+        //    MaxPlayers = DataManager.Instance.MaxPlayerNumberForCurrentBoard,
 
-            IsOpen = true,
-            IsVisible = false,
+        //    IsOpen = true,
+        //    IsVisible = false,
 
-            CustomRoomProperties = new ExitGames.Client.Photon.Hashtable() { { UserTypeKey, userType }, { EntryFeesKey, entryFee } }
-        };
+        //    CustomRoomProperties = new ExitGames.Client.Photon.Hashtable() { { UserTypeKey, userType }, { EntryFeesKey, entryFee } }
+        //};
 
         currentRoomId = UnityEngine.Random.Range(1000, 10000).ToString();
         Debug.Log($"RoomID: {currentRoomId}, Fee: {entryFee}");
-        PhotonNetwork.CreateRoom(currentRoomId.ToString(), roomOptions);
+       // PhotonNetwork.CreateRoom(currentRoomId.ToString(), roomOptions);
     }
     #endregion Create Room
 
@@ -886,7 +886,7 @@ public class NetworkManager : MonoBehaviourPunCallbacks
         }
 
         currentRoomId = roomId;
-        PhotonNetwork.JoinRoom(roomId);
+        //PhotonNetwork.JoinRoom(roomId);
     }
 
     private void ShowUnableToJoinRoomDueToLowBalance()
@@ -900,8 +900,8 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 
     private void CloseCurrentRoom()
     {
-        PhotonNetwork.CurrentRoom.IsOpen = false; // No new players can join
-        PhotonNetwork.CurrentRoom.IsVisible = false; // Room is not visible in the lobby
+       // PhotonNetwork.CurrentRoom.IsOpen = false; // No new players can join
+       // PhotonNetwork.CurrentRoom.IsVisible = false; // Room is not visible in the lobby
     }
 
     public void StartGameWithDelayTime()
@@ -929,10 +929,10 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     }
 
 
-    internal bool IsRoomFull()
-    {
-        return PhotonNetwork.CurrentRoom.PlayerCount == PhotonNetwork.CurrentRoom.MaxPlayers;
-    }
+    //internal bool IsRoomFull()
+    //{
+    //    //return PhotonNetwork.CurrentRoom.PlayerCount == PhotonNetwork.CurrentRoom.MaxPlayers;
+    //}
 
     #endregion Common Methods for Private Or Random Room
 }

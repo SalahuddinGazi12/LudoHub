@@ -1,6 +1,6 @@
-using ExitGames.Client.Photon;
-using Photon.Pun;
-using Photon.Realtime;
+//using ExitGames.Client.Photon;
+//using Photon.Pun;
+//using Photon.Realtime;
 using System;
 using System.Collections.Generic;
 using TMPro;
@@ -50,7 +50,7 @@ public class GameManager : MonoBehaviour
     private bool greenCanMove = true;
     private bool yellowCanMove = true;
 
-    [SerializeField] private PhotonView photonView;
+   // [SerializeField] private PhotonView photonView;
 
     private const byte GAME_OVER_EVENT_CODE = 1;
     private const byte CURRENT_TURN_EVENT_CODE = 2;
@@ -268,13 +268,13 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         // Register the event handler for receiving events
-        PhotonNetwork.NetworkingClient.EventReceived += OnPhotonGameEventReceived;
+     //   PhotonNetwork.NetworkingClient.EventReceived += OnPhotonGameEventReceived;
     }
 
     private void OnDestroy()
     {
         // Unregister the event handler to avoid memory leaks
-        PhotonNetwork.NetworkingClient.EventReceived -= OnPhotonGameEventReceived;
+      //  PhotonNetwork.NetworkingClient.EventReceived -= OnPhotonGameEventReceived;
     }
 
     public void SetUpBoardAndTotalPlayers(int totalPlayers)
@@ -303,7 +303,7 @@ public class GameManager : MonoBehaviour
         
         currentBoardsPlayers.Remove(diceColor);
             
-        if(rolledDice.SelfDiceColor == diceColor && PhotonNetwork.IsMasterClient)
+        //if(rolledDice.SelfDiceColor == diceColor && PhotonNetwork.IsMasterClient)
             UIManager.Instance.ChangeTurn(ShiftDice());
     }
 
@@ -339,13 +339,13 @@ public class GameManager : MonoBehaviour
 
     private Action actionToRunInRPC = null;
 
-    public void RunMethodInRPC(Action action, RpcTarget rpcTarget = RpcTarget.AllBuffered, params object[] parameters)
-    {
-        photonView.RPC(nameof(RPC_MethodRunner), rpcTarget, parameters);
-        actionToRunInRPC = action;
-    }
+    //public void RunMethodInRPC(Action action, //RpcTarget rpcTarget = RpcTarget.AllBuffered, params object[] parameters)
+    //{
+    //   // photonView.RPC(nameof(RPC_MethodRunner), rpcTarget, parameters);
+    //    actionToRunInRPC = action;
+    //}
 
-    [PunRPC]
+    //[PunRPC]
     private void RPC_MethodRunner()
     {
         actionToRunInRPC?.Invoke();
@@ -415,7 +415,7 @@ public class GameManager : MonoBehaviour
         }
     }
     
-    [PunRPC]
+   // [PunRPC]
     public void RollingDiceManager()
     {
         if (transferDice)
@@ -655,52 +655,52 @@ public class GameManager : MonoBehaviour
         object content = winingDiceColor;
 
         // Define who will receive the event (all players in the room)
-        RaiseEventOptions raiseEventOptions = new RaiseEventOptions
-        {
-            Receivers = ReceiverGroup.All // You can use ReceiverGroup.MasterClient, Others, etc.
-        };
+        //RaiseEventOptions raiseEventOptions = new RaiseEventOptions
+        //{
+        //    Receivers = ReceiverGroup.All // You can use ReceiverGroup.MasterClient, Others, etc.
+        //};
 
         // Send options (whether to send reliably or not)
-        SendOptions sendOptions = new SendOptions
-        {
-            Reliability = true // If true, event is sent reliably
-        };
+        //SendOptions sendOptions = new SendOptions
+        //{
+        //    Reliability = true // If true, event is sent reliably
+        //};
 
-        // Raise the event
-        PhotonNetwork.RaiseEvent(GAME_OVER_EVENT_CODE, content, raiseEventOptions, sendOptions);
+        //// Raise the event
+        //PhotonNetwork.RaiseEvent(GAME_OVER_EVENT_CODE, content, raiseEventOptions, sendOptions);
     }
 
-    private void OnPhotonGameEventReceived(EventData photonEvent)
-    {
-        // Check if the event code matches the custom event
-        if (photonEvent.Code == GAME_OVER_EVENT_CODE)
-        {
-            // Get the data from the event (it will match the type of data you sent)
-            object eventData = photonEvent.CustomData;
+    //private void OnPhotonGameEventReceived(EventData photonEvent)
+    //{
+    //    // Check if the event code matches the custom event
+    //    if (photonEvent.Code == GAME_OVER_EVENT_CODE)
+    //    {
+    //        // Get the data from the event (it will match the type of data you sent)
+    //        object eventData = photonEvent.CustomData;
 
-            // Cast it to a string (in this case, because we sent a string)
-            DiceColor winingDiceColor = (DiceColor) eventData;
+    //        // Cast it to a string (in this case, because we sent a string)
+    //        DiceColor winingDiceColor = (DiceColor) eventData;
 
-            // Handle the received event (you can do anything here, for example, log the message)
-            Debug.Log($"Received custom event message: {winingDiceColor}");
+    //        // Handle the received event (you can do anything here, for example, log the message)
+    //        Debug.Log($"Received custom event message: {winingDiceColor}");
 
-            EndGame(winingDiceColor);
-        }
-        else if(photonEvent.Code == CURRENT_TURN_EVENT_CODE)
-        {
-            // Get the data from the event (it will match the type of data you sent)
-            object eventData = photonEvent.CustomData;
+    //        EndGame(winingDiceColor);
+    //    }
+    //    else if(photonEvent.Code == CURRENT_TURN_EVENT_CODE)
+    //    {
+    //        // Get the data from the event (it will match the type of data you sent)
+    //        object eventData = photonEvent.CustomData;
 
-            // Cast it to a string (in this case, because we sent a string)
-            DiceColor newActiveDiceColor = (DiceColor) eventData;
+    //        // Cast it to a string (in this case, because we sent a string)
+    //        DiceColor newActiveDiceColor = (DiceColor) eventData;
 
-            // Handle the received event (you can do anything here, for example, log the message)
-            Debug.LogError($"Received custom event message of Current Turn: {newActiveDiceColor}");
-            activeDiceColor = newActiveDiceColor;
-            DataManager.Instance.SetActiveDiceColor(newActiveDiceColor);
-            UIManager.Instance.ChangeTurnForMultiplayer(newActiveDiceColor);
-        }
-    }
+    //        // Handle the received event (you can do anything here, for example, log the message)
+    //        Debug.LogError($"Received custom event message of Current Turn: {newActiveDiceColor}");
+    //        activeDiceColor = newActiveDiceColor;
+    //        DataManager.Instance.SetActiveDiceColor(newActiveDiceColor);
+    //        UIManager.Instance.ChangeTurnForMultiplayer(newActiveDiceColor);
+    //    }
+    //}
 
     public void RaiseTurnChangeEvent(DiceColor diceColor)
     {
@@ -708,20 +708,20 @@ public class GameManager : MonoBehaviour
         object content = diceColor;
 
         // Define who will receive the event (all players in the room)
-        RaiseEventOptions raiseEventOptions = new RaiseEventOptions
-        {
-            Receivers = ReceiverGroup.All // You can use ReceiverGroup.MasterClient, Others, etc.
-        };
+        //RaiseEventOptions raiseEventOptions = new RaiseEventOptions
+        //{
+        //    Receivers = ReceiverGroup.All // You can use ReceiverGroup.MasterClient, Others, etc.
+        //};
 
         // Send options (whether to send reliably or not)
-        SendOptions sendOptions = new SendOptions
-        {
-            Reliability = true // If true, event is sent reliably
-        };
+        //SendOptions sendOptions = new SendOptions
+        //{
+        //    Reliability = true // If true, event is sent reliably
+        //};
 
-        // Raise the event
-        Debug.LogError($"Raising Turn Change: {diceColor}, ViewID: {photonView.ViewID}");
-        PhotonNetwork.RaiseEvent(CURRENT_TURN_EVENT_CODE, content, raiseEventOptions, sendOptions);
+        //// Raise the event
+        //Debug.LogError($"Raising Turn Change: {diceColor}, ViewID: {photonView.ViewID}");
+        //PhotonNetwork.RaiseEvent(CURRENT_TURN_EVENT_CODE, content, raiseEventOptions, sendOptions);
     }
 
     // Method to end the game and declare the winner

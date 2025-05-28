@@ -5,7 +5,7 @@ using Network;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using Photon.Pun;
+//using Photon.Pun;
 using UnityEngine.Events;
 using SecureDataSaver;
 using UnityEngine.Serialization;
@@ -129,7 +129,7 @@ public class MenuManager : MonoBehaviour
     private UnityAction backAction;
     
     private Stack<Action> backBtnActionQueue = new Stack<Action>();
-    private PhotonView photonView;
+    //private PhotonView photonView;
     #region Monobehaviour Callbacks and Common Section
 
     private void Start()
@@ -152,7 +152,7 @@ public class MenuManager : MonoBehaviour
         {
             Destroy(this.gameObject);
         }
-        photonView = GetComponent<PhotonView>();
+       // photonView = GetComponent<PhotonView>();
     }
 
     public void GoWithCustomData()
