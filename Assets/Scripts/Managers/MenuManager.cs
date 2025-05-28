@@ -479,6 +479,7 @@ public class MenuManager : MonoBehaviour
         DataManager.Instance.SetCurrentRoomType(RoomType.Random);
         DataManager.Instance.SetCurrentRoomMode(RoomMode.Null);
        
+
         CloseAllPanel();
         AddNewActionToBackBtn(() =>
         {
@@ -1233,7 +1234,7 @@ public class MenuManager : MonoBehaviour
     private void OnLogInSuccess(string jsonData)
     {
         ApiResponse response = JsonUtility.FromJson<ApiResponse>(jsonData);
-
+        
         if (userType == UserType.NORMAL)
         {
             response.user = new User

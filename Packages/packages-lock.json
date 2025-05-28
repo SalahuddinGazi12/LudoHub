@@ -1,10 +1,12 @@
 {
   "dependencies": {
-    "com.endel.nativewebsocket": {
-      "version": "file:D:/Khalifa tech/NativeWebSocket-master/NativeWebSocket/Assets",
+    "com.itisnajim.socketiounity": {
+      "version": "file:D:/Zakaria Vai Game/Nativwebtest/SocketIOUnity-main",
       "depth": 0,
       "source": "local",
-      "dependencies": {}
+      "dependencies": {
+        "com.unity.nuget.newtonsoft-json": "3.0.2"
+      }
     },
     "com.unity.2d.sprite": {
       "version": "1.0.0",
@@ -98,7 +100,7 @@
     },
     "com.unity.nuget.newtonsoft-json": {
       "version": "3.2.1",
-      "depth": 2,
+      "depth": 1,
       "source": "registry",
       "dependencies": {},
       "url": "https://packages.unity.com"

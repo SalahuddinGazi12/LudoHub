@@ -64,38 +64,140 @@ public class NetworkManager : MonoBehaviour
         }
 
         Instance = this;
-
-        // Singleton pattern
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        Instance = this;
         DontDestroyOnLoad(gameObject);
 
-        ConfigurePhotonSettings();
+        // Initialize WebSocket events
+        SocketIOManager.Instance.OnConnected += OnWebSocketConnected;
+        SocketIOManager.Instance.OnDisconnected += OnWebSocketDisconnected;
+        SocketIOManager.Instance.OnRoomCreated += OnPrivateRoomCreated;
+        SocketIOManager.Instance.OnRoomJoined += OnRoomJoined;
+        SocketIOManager.Instance.OnPlayersUpdated += OnPlayersUpdated;
+        SocketIOManager.Instance.OnGameStarted += OnGameStarted;
+
+
     }
 
-    private void ConfigurePhotonSettings()
+    public void Connect()
     {
-        // Version and region
-        //PhotonNetwork.GameVersion = gameVersion;
-        //PhotonNetwork.PhotonServerSettings.AppSettings.FixedRegion = preferredRegion;
-
-        // Network optimizations for Bangladesh
-        //PhotonNetwork.AutomaticallySyncScene = true;
-        //PhotonNetwork.SendRate = 30;
-        //PhotonNetwork.SerializationRate = 15;
-
-        //// Timeout and reliability settings
-        //var peer = PhotonNetwork.NetworkingClient.LoadBalancingPeer;
-        //peer.DisconnectTimeout = 30000; // 30 seconds
-        //peer.QuickResendAttempts = 3;
-        //peer.SentCountAllowance = 10;
+        // Only connect if not already connected
+        if (!SocketIOManager.Instance.IsConnected())
+        {
+            SocketIOManager.Instance.Connect(DataManager.Instance.CurrentUser.id.ToString());
+        }
+        else
+        {
+            // If already connected, proceed directly to room joining
+            OnWebSocketConnected();
+        }
     }
 
+    private void OnWebSocketConnected()
+    {
+        Debug.Log("WebSocket connected!");
+
+        switch (DataManager.Instance.CurrentRoomType)
+        {
+            case RoomType.Random:
+                JoinRandomRoom();
+                break;
+
+            case RoomType.Private when DataManager.Instance.CurrentRoomMode == RoomMode.Create:
+                CreateCustomRoom();
+                break;
+
+            case RoomType.Private when DataManager.Instance.CurrentRoomMode == RoomMode.Join:
+                JoinPrivateRoom(uiManager.GetInputtedRoomId());
+                break;
+        }
+    }
+
+    private void OnWebSocketDisconnected(string reason)
+    {
+        Debug.Log($"WebSocket disconnected: {reason}");
+
+        if (DataManager.Instance.CurrentGameState == GameState.Init)
+        {
+            menuManager.ShowNoInternetPopUp();
+        }
+        else if (DataManager.Instance.CurrentGameState != GameState.Play)
+        {
+            uiManager.OnGameFinished(DiceColor.Unknown);
+        }
+    }
+
+    private void JoinRandomRoom()
+    {
+        if (SocketIOManager.Instance.IsConnected())
+        {
+            string matchFee = Helper.GetReadableNumber(DataManager.Instance.CurrentEntryFee);
+            Debug.Log(matchFee);
+            SocketIOManager.Instance.JoinRandomMatch(matchFee, DataManager.Instance.MaxPlayerNumberForCurrentBoard);
+        }
+        else
+        {
+            Debug.LogError("WebSocket not connected when trying to join random room");
+            // Optionally try to reconnect
+            Connect();
+        }
+    }
+
+    private void CreateCustomRoom()
+    {
+        string matchFee = Helper.GetReadableNumber(DataManager.Instance.CurrentEntryFee);
+        SocketIOManager.Instance.CreatePrivateRoom(matchFee, DataManager.Instance.MaxPlayerNumberForCurrentBoard);
+    }
+
+    private void JoinPrivateRoom(string roomId)
+    {
+        SocketIOManager.Instance.JoinPrivateRoom(roomId);
+    }
+
+    private void OnPrivateRoomCreated(string roomCode)
+    {
+        currentRoomId = roomCode;
+        uiManager.OpenPrivateJoinedPlayerPanel(roomCode);
+    }
+
+    private void OnRoomJoined(string roomId)
+    {
+        currentRoomId = roomId;
+        CheckBackBalanceAndRequestToGetDiceColor();
+    }
+
+    private void OnPlayersUpdated(List<PlayerData> players)
+    {
+        uiManager.RemoveAllJoinedPlayers();
+
+        foreach (var player in players)
+        {
+            if (player.playerId == DataManager.Instance.CurrentUser.id.ToString())
+            {
+                DataManager.Instance.SetOwnDiceColor(player.diceColor);
+            }
+
+            if (DataManager.Instance.CurrentRoomType == RoomType.Random)
+            {
+                UIManager.Instance.InstantiateJoinedPlayer(player.diceColor, OpenJoinMultiplayerPanel);
+            }
+            else
+            {
+                UIManager.Instance.InstantiateJoinedPlayer(player.diceColor, OpenPrivateJoinedPlayerPanel);
+            }
+        }
+
+        if (players.Count >= DataManager.Instance.MaxPlayerNumberForCurrentBoard)
+        {
+            StartGame();
+        }
+    }
+
+    private void OnGameStarted(GameStartData gameData)
+    {
+        DataManager.Instance.SetSessionId(gameData.sessionId);
+        DataManager.Instance.SetCurrentEntryFees(gameData.entryFee);
+
+        StartCoroutine(Animtionplay());
+    }
 
     private void Start()
     {
@@ -188,25 +290,6 @@ public void PlayWithRandomPlayer()
         OnOnlineButtonClick();
     }
 
-    private void JoinRandomRoom()
-    {
-        DataManager.Instance.SetMaxPlayerNumberForCurrentBoard(4); //Setting max player to 4
-
-        int entryFee = DataManager.Instance.CurrentEntryFee;
-        byte maxPlayer = DataManager.Instance.MaxPlayerNumberForCurrentBoard;
-
-        userType = DataManager.Instance.CurrentUserType;
-
-        Debug.Log($"Looking for room with {Enum.GetName(typeof(UserType), userType)} where entry fee is {entryFee} and maxPlayer is {maxPlayer}");
-
-        //ExitGames.Client.Photon.Hashtable roomProperties = new()
-        //{
-        //    { UserTypeKey, userType },
-        //    { EntryFeesKey,  entryFee},
-        //};
-
-        //PhotonNetwork.JoinRandomRoom(roomProperties, maxPlayer);
-    }
 
     private void CreateRandomRoom()
     {
@@ -240,36 +323,7 @@ public void PlayWithRandomPlayer()
        // uiManager.ShowOnlinePlayerCount(PhotonNetwork.PlayerList.Length);
     }
     
-    public void Connect()
-    {
-        userType = DataManager.Instance.CurrentUserType;
-
-        InvokeRepeating(nameof(ShowOnlinePlayerCount), 1f, 1f);
-        
-        //StartToDisplayPhotonStateCoroutine();
-        uiManager.RemoveAllJoinedPlayers();
-
-        //switch (PhotonNetwork.IsConnected)
-        //{
-        //    case true when DataManager.Instance.CurrentRoomType == RoomType.Random:
-        //        Debug.Log("JoinRandomRoom");
-        //        JoinRandomRoom();
-        //        break;
-
-        //    case true when DataManager.Instance.CurrentRoomType == RoomType.Private && DataManager.Instance.CurrentRoomMode == RoomMode.Create:
-        //        CreateCustomRoom();
-        //        break;
-
-        //    case true when DataManager.Instance.CurrentRoomType == RoomType.Private && DataManager.Instance.CurrentRoomMode == RoomMode.Join:
-        //        JoinPrivateRoom(uiManager.GetInputtedRoomId());
-        //        break;
-
-        //    default:
-        //        PhotonNetwork.ConnectUsingSettings();
-        //        break;
-        //}
-
-    }
+   
 
     private void SetAndShowConnectingStatus(string message)
     {
@@ -852,42 +906,11 @@ public void PlayWithRandomPlayer()
     #endregion Game Session
 
     #region Create Room
-    private void CreateCustomRoom()
-    {
-        int entryFee = DataManager.Instance.CurrentEntryFee;
-        userType = DataManager.Instance.CurrentUserType;
-
-        Debug.Log($"Creating Custom room for {userType} with {entryFee} fee with MaxPlayer: {DataManager.Instance.MaxPlayerNumberForCurrentBoard}");
-
-        //RoomOptions roomOptions = new RoomOptions
-        //{
-        //    CustomRoomPropertiesForLobby = new[] { UserTypeKey, EntryFeesKey },
-        //    MaxPlayers = DataManager.Instance.MaxPlayerNumberForCurrentBoard,
-
-        //    IsOpen = true,
-        //    IsVisible = false,
-
-        //    CustomRoomProperties = new ExitGames.Client.Photon.Hashtable() { { UserTypeKey, userType }, { EntryFeesKey, entryFee } }
-        //};
-
-        currentRoomId = UnityEngine.Random.Range(1000, 10000).ToString();
-        Debug.Log($"RoomID: {currentRoomId}, Fee: {entryFee}");
-       // PhotonNetwork.CreateRoom(currentRoomId.ToString(), roomOptions);
-    }
+   
     #endregion Create Room
 
     #region Join Room
-    private void JoinPrivateRoom(string roomId)
-    {
-        if (string.IsNullOrEmpty(roomId))
-        {
-            uiManager.errorPopUp.ShowMessagePanel("Invalid Room id. Please enter correct room id.");
-            return;
-        }
-
-        currentRoomId = roomId;
-        //PhotonNetwork.JoinRoom(roomId);
-    }
+   
 
     private void ShowUnableToJoinRoomDueToLowBalance()
     {
