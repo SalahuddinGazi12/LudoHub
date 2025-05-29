@@ -1,12 +1,13 @@
 {
   "dependencies": {
     "com.itisnajim.socketiounity": {
-      "version": "file:D:/Zakaria Vai Game/Nativwebtest/SocketIOUnity-main",
+      "version": "https://github.com/itisnajim/SocketIOUnity.git",
       "depth": 0,
-      "source": "local",
+      "source": "git",
       "dependencies": {
         "com.unity.nuget.newtonsoft-json": "3.0.2"
-      }
+      },
+      "hash": "00e176cdc31b1cd06bdc556ac919f9bcd166d7ee"
     },
     "com.unity.2d.sprite": {
       "version": "1.0.0",

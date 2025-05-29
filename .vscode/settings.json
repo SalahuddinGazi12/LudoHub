@@ -49,6 +49,6 @@
         "**/*.csproj": true,
         "**/*.sln": true
     },
-    "dotnet.defaultSolution": "Ludo.sln",
+    "dotnet.defaultSolution": "LudoHub.sln",
     "dotnet.preferCSharpExtension": true
 }
