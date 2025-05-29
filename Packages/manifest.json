@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "com.itisnajim.socketiounity": "https://github.com/itisnajim/SocketIOUnity.git",
+    "com.itisnajim.socketiounity": "file:D:/Zakaria Vai Game/Nativwebtest/SocketIOUnity-main",
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.2d.tilemap": "1.0.0",
     "com.unity.ads": "4.4.2",
