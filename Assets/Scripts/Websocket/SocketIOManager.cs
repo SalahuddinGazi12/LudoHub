@@ -3,6 +3,10 @@ using SocketIOClient;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Network;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
+using System.Linq;
 
 public class SocketIOManager : MonoBehaviour
 {
@@ -239,83 +243,7 @@ public class SocketIOManager : MonoBehaviour
                 }
             });
 
-            _socket.On("timer", response => 
-            {
-                try
-                {
-                    Debug.Log($"[SocketIOManager] Received timer event. Raw response: {response}");
-                    
-                    // Extract timer value safely
-                    string rawData = response.ToString();
-                    if (rawData.Contains("\"timer\":"))
-                    {
-                        int timerStart = rawData.IndexOf("\"timer\":") + 8;
-                        if (timerStart > 8)
-                        {
-                            string timerValue = "";
-                            int i = 0;
-                            while (timerStart + i < rawData.Length && 
-                                  char.IsDigit(rawData[timerStart + i]))
-                            {
-                                timerValue += rawData[timerStart + i];
-                                i++;
-                            }
-                            
-                            if (!string.IsNullOrEmpty(timerValue) && int.TryParse(timerValue, out int seconds))
-                            {
-                                Debug.Log($"[SocketIOManager] Timer value extracted: {seconds} seconds");
-                                OnTimerUpdated?.Invoke(seconds);
-                            }
-                            else
-                            {
-                                Debug.LogWarning($"[SocketIOManager] Failed to parse timer value: '{timerValue}'");
-                            }
-                        }
-                    }
-                    else
-                    {
-                        Debug.LogWarning("[SocketIOManager] Timer event doesn't contain a timer value");
-                    }
-                    
-                    // Check if room is open or closed
-                    bool isOpen = !rawData.Contains("\"open\":false") && !rawData.Contains("\"open\": false");
-                    Debug.Log($"[SocketIOManager] Room open status: {isOpen}");
-                    
-                    if (!isOpen) 
-                    {
-                        Debug.Log("[SocketIOManager] Room is now closed for new players");
-                        _isRoomFull = true;
-                    }
-                    
-                    // Try to extract player count if available
-                    if (rawData.Contains("\"player_count\":"))
-                    {
-                        int countStart = rawData.IndexOf("\"player_count\":") + 15;
-                        if (countStart > 15)
-                        {
-                            string countValue = "";
-                            int i = 0;
-                            while (countStart + i < rawData.Length && 
-                                  char.IsDigit(rawData[countStart + i]))
-                            {
-                                countValue += rawData[countStart + i];
-                                i++;
-                            }
-                            
-                            if (!string.IsNullOrEmpty(countValue) && int.TryParse(countValue, out int count))
-                            {
-                                Debug.Log($"[SocketIOManager] Player count from timer event: {count}");
-                                _playerCount = count;
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogError($"[SocketIOManager] Error processing timer event: {ex.Message}");
-                    Debug.LogError($"[SocketIOManager] Exception details: {ex}");
-                }
-            });
+            _socket.On("timer", HandleTimerEvent);
 
             _socket.OnAny((eventName, response) =>
             {
@@ -383,7 +311,9 @@ public class SocketIOManager : MonoBehaviour
                             
                         // Add more cases for other event types as needed
                         default:
-                            Debug.Log($"[SocketIOManager] Unprocessed event type: {eventName}");
+                            if (eventName == "timer") return;
+
+                            Debug.Log($"[SocketIOManager] Received generic event: '{eventName}' with data: {response}");
                             // Still log some key information if we can find it
                             if (rawResponse.Contains("\"id\":"))
                             {
@@ -627,164 +557,95 @@ public class SocketIOManager : MonoBehaviour
             }
         }
     }
-    
-    /// <summary>
-    /// Processes all received Socket.IO events and their data using safe string parsing.
-    /// </summary>
-    private void ProcessReceivedEvent(string eventName, SocketIOResponse response)
+    private void HandleTimerEvent(SocketIOResponse response)
     {
         try
         {
-            // Extract the raw response as a string for safe parsing
-            string rawResponse = response.ToString();
-            Debug.Log($"[SocketIOManager] [ProcessReceivedEvent] Raw response for {eventName}: {rawResponse}");
-            
-            // Handle events based on their type
-            switch (eventName)
+            if (response == null)
             {
-                case "system":
-                    try {
-                        Debug.Log($"[SocketIOManager] [ProcessReceivedEvent] System message: {rawResponse}");
-                        
-                        // Extract useful information if present
-                        if (rawResponse.Contains("Joined new room:")) {
-                            int roomCodeStart = rawResponse.IndexOf("Joined new room:") + 15;
-                            if (roomCodeStart > 15) {
-                                string roomCode = rawResponse.Substring(roomCodeStart).Trim().Trim('"', ']', '[');
-                                Debug.Log($"[SocketIOManager] Joined room with code: {roomCode}");
-                            }
-                        }
-                        
-                        if (rawResponse.Contains("Your ID set to")) {
-                            int idStart = rawResponse.IndexOf("Your ID set to") + 13;
-                            if (idStart > 13) {
-                                string playerId = rawResponse.Substring(idStart).Trim().Trim('"', ']', '[');
-                                Debug.Log($"[SocketIOManager] Player ID set to: {playerId}");
-                            }
-                        }
-                    } 
-                    catch (Exception innerEx) {
-                        Debug.LogWarning($"[SocketIOManager] Could not parse system event: {innerEx.Message}");
-                    }
-                    break;
-                    
-                case "timer":
-                    try {
-                        Debug.Log($"[SocketIOManager] [ProcessReceivedEvent] Timer event: {rawResponse}");
-                        
-                        // Extract timer value
-                        if (rawResponse.Contains("\"timer\":")) {
-                            int timerStart = rawResponse.IndexOf("\"timer\":") + 8;
-                            if (timerStart > 8) {
-                                string timerValue = "";
-                                int i = 0;
-                                while (timerStart + i < rawResponse.Length && 
-                                      char.IsDigit(rawResponse[timerStart + i])) {
-                                    timerValue += rawResponse[timerStart + i];
-                                    i++;
-                                }
-                                
-                                if (!string.IsNullOrEmpty(timerValue)) {
-                                    Debug.Log($"[SocketIOManager] Timer value: {timerValue}");
-                                    // TODO: Handle timer updates
-                                }
-                            }
-                        }
-                        
-                        // Check if room is open or closed
-                        bool isOpen = !rawResponse.Contains("\"open\":false") && !rawResponse.Contains("\"open\": false");
-                        
-                        if (!isOpen) {
-                            Debug.Log("[SocketIOManager] Room is now closed");
-                            // TODO: Handle room closure
-                        }
-                    }
-                    catch (Exception timerEx) {
-                        Debug.LogWarning($"[SocketIOManager] Error parsing timer event: {timerEx.Message}");
-                    }
-                    break;
-                    
-                case "join":
-                    try {
-                        Debug.Log($"[SocketIOManager] [ProcessReceivedEvent] Join event: {rawResponse}");
-                        
-                        // Extract game code
-                        if (rawResponse.Contains("\"game_code\"")) {
-                            int codeStart = rawResponse.IndexOf("\"game_code\"") + 12;
-                            if (codeStart > 12) {
-                                // Skip to the actual value (after the colon and quotes)
-                                while (codeStart < rawResponse.Length && 
-                                      (rawResponse[codeStart] == '\"' || rawResponse[codeStart] == ':' || 
-                                       rawResponse[codeStart] == ' ')) {
-                                    codeStart++;
-                                }
-                                
-                                // Extract the code
-                                string gameCode = "";
-                                int i = 0;
-                                while (codeStart + i < rawResponse.Length && 
-                                      rawResponse[codeStart + i] != '\"' && rawResponse[codeStart + i] != ',') {
-                                    gameCode += rawResponse[codeStart + i];
-                                    i++;
-                                }
-                                
-                                if (!string.IsNullOrEmpty(gameCode)) {
-                                    Debug.Log($"[SocketIOManager] Game code: {gameCode}");
-                                }
-                            }
-                        }
-                          // Extract player count
-                        if (rawResponse.Contains("\"player_online\"")) {
-                            int playerStart = rawResponse.IndexOf("\"player_online\"") + 16;
-                            if (playerStart > 16) {
-                                // Skip to the actual value
-                                while (playerStart < rawResponse.Length && 
-                                      (rawResponse[playerStart] == ':' || rawResponse[playerStart] == ' ')) {
-                                    playerStart++;
-                                }
-                                
-                                // Extract the count
-                                string playerCount = "";
-                                int i = 0;
-                                while (playerStart + i < rawResponse.Length && 
-                                      char.IsDigit(rawResponse[playerStart + i])) {
-                                    playerCount += rawResponse[playerStart + i];
-                                    i++;
-                                }
-                                
-                                if (!string.IsNullOrEmpty(playerCount)) {
-                                    Debug.Log($"[SocketIOManager] Player count: {playerCount}");
-                                }
-                            }
-                        }
-                    }
-                    catch (Exception joinEx) {
-                        Debug.LogWarning($"[SocketIOManager] Error parsing join event: {joinEx.Message}");
-                    }
-                    break;
-                    
-                // Add more cases for other event types as needed
-                default:
-                    Debug.Log($"[SocketIOManager] [ProcessReceivedEvent] Unhandled event: {eventName}");
-                    break;
+                Debug.LogWarning("[SocketIOManager] Timer event received null response");
+                return;
             }
+
+            string jsonString = response.ToString();
+            Debug.Log($"[SocketIOManager] Raw timer data: {jsonString}");
+
+            // Parse the timer data
+            int secondsRemaining = 15;
+            bool isOpen = true;
+            int playerCount = _playerCount;
+
+            try
+            {
+                JToken token = JToken.Parse(jsonString);
+
+                if (token is JArray array && array.Count > 0)
+                {
+                    if (array[0]["roomInfo"] is JObject roomInfo)
+                    {
+                        secondsRemaining = roomInfo["timer"]?.Value<int>() ?? secondsRemaining;
+                        isOpen = roomInfo["open"]?.Value<bool>() ?? isOpen;
+                        playerCount = roomInfo["players"]?.Count() ?? playerCount;
+                    }
+                }
+                else if (token is JObject obj)
+                {
+                    secondsRemaining = obj["timer"]?.Value<int>() ?? secondsRemaining;
+                    isOpen = obj["open"]?.Value<bool>() ?? isOpen;
+                    playerCount = obj["players"]?.Count() ?? playerCount;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[SocketIOManager] Error parsing timer data: {ex}");
+            }
+
+            // Clamp values
+            secondsRemaining = Mathf.Clamp(secondsRemaining, 0, 15);
+            playerCount = Mathf.Max(0, playerCount);
+
+            // Log the values we're about to dispatch
+            Debug.Log($"[SocketIOManager] Dispatching timer update - Seconds: {secondsRemaining}, Open: {isOpen}, Players: {playerCount}");
+
+            // Dispatch to main thread with error handling
+            UnityMainThreadDispatcher.Instance.Enqueue(() =>
+            {
+                try
+                {
+                    Debug.Log($"[SocketIOManager] Main thread executing timer update");
+
+                    // Update internal state
+                    _isRoomFull = !isOpen;
+                    _playerCount = playerCount;
+
+                    // Invoke the event
+                    if (OnTimerUpdated != null)
+                    {
+                        Debug.Log($"[SocketIOManager] Invoking OnTimerUpdated with {secondsRemaining} seconds");
+                        OnTimerUpdated.Invoke(secondsRemaining);
+                    }
+                    else
+                    {
+                        Debug.LogWarning("[SocketIOManager] OnTimerUpdated event has no subscribers");
+                    }
+
+                    if (secondsRemaining == 0)
+                    {
+                        Debug.Log("[SocketIOManager] Timer has reached zero!");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"[SocketIOManager] Error in main thread timer handler: {ex}");
+                }
+            });
         }
         catch (Exception ex)
         {
-            Debug.LogError($"[SocketIOManager] [ProcessReceivedEvent] Error processing event '{eventName}': {ex.Message}");
+            Debug.LogError($"[SocketIOManager] Error processing timer event: {ex}");
         }
-    }    // The duplicate methods IsRoomFull and GetPlayerCount are removed
-    // The existing methods higher in the file are used instead
-    
-    /// <summary>
-    /// Helper method to extract a value from a JSON string by key
-    /// </summary>
-    
-    /// <summary>
-    /// Helper method to extract a value from a JSON string by key
-    /// </summary>    /// <summary>
-    /// Helper method to extract a value from a JSON string by key with detailed logging
-    /// </summary>
+    }
+
     private bool ExtractValueFromJson(string jsonString, string key, out string value)
     {
         value = string.Empty;
@@ -902,6 +763,9 @@ public class SocketIOManager : MonoBehaviour
             return false;
         }
     }
+
+
+ 
 }
 
 [Serializable]
@@ -966,4 +830,29 @@ public class GameStartData
     public int entryFee;
     public List<PlayerData> players;
     public DiceColor startingPlayer;
+}
+[Serializable]
+public class TimerData
+{
+    // For array format [timer, open, player_count]
+    [JsonConstructor]
+    public TimerData(JArray array)
+    {
+        if (array != null && array.Count > 0)
+        {
+            timer = array[0].Type == JTokenType.Integer ? array[0].Value<int>() : 0;
+            open = array.Count > 1 && array[1].Type == JTokenType.Boolean ? array[1].Value<bool>() : true;
+            player_count = array.Count > 2 && array[2].Type == JTokenType.Integer ? array[2].Value<int>() : 0;
+        }
+    }
+
+    // For object format {"timer":x,"open":y,"player_count":z}
+    [JsonProperty("timer")]
+    public int timer { get; set; }
+
+    [JsonProperty("open")]
+    public bool open { get; set; }
+
+    [JsonProperty("player_count")]
+    public int player_count { get; set; }
 }

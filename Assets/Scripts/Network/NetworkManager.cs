@@ -6,6 +6,7 @@ using System.Collections;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Network;
 
 public class NetworkManager : MonoBehaviour
 {
@@ -39,7 +40,7 @@ public class NetworkManager : MonoBehaviour
     public GameObject GamePanel;
     public GameObject ConnectingPanel;
     public TextMeshProUGUI ConnectingStatusText;
-    
+
     private float startTime = 100.0f;
     private float timer;
     private bool countdownStarted = false;
@@ -48,8 +49,8 @@ public class NetworkManager : MonoBehaviour
     [SerializeField] private UIManager uiManager;
     [SerializeField] private MenuManager menuManager;
     [SerializeField] private int totalvalue;
-  //  PhotonView pv;
-    
+    //  PhotonView pv;
+
     private bool hasRejoined = false;
     private Coroutine rejoinTimerCoroutine;
 
@@ -83,42 +84,44 @@ public class NetworkManager : MonoBehaviour
     {
         Debug.LogError($"[NetworkManager] Socket.IO error: {errorMessage}");
         uiManager.errorPopUp.ShowMessagePanel($"Connection error: {errorMessage}");
-    }    public void Connect()
+    }
+    public void Connect()
     {
         Debug.Log("[NetworkManager] Connect() called");
         Debug.Log($"[NetworkManager] Connect: MaxPlayerNumberForCurrentBoard = {DataManager.Instance.MaxPlayerNumberForCurrentBoard}");
         Debug.Log($"[NetworkManager] Connect: CurrentRoomType = {DataManager.Instance.CurrentRoomType}, CurrentRoomMode = {DataManager.Instance.CurrentRoomMode}");
         Debug.Log($"[NetworkManager] Connect: CurrentEntryFee = {DataManager.Instance.CurrentEntryFee}");
-        
+
         // Only connect if not already connected
         if (!SocketIOManager.Instance.IsConnected())
         {
             Debug.Log("[NetworkManager] Not connected. Attempting to connect with user ID: " + DataManager.Instance.CurrentUser.id);
-            
+
             // Ensure MaxPlayerNumberForCurrentBoard is valid
             if (DataManager.Instance.MaxPlayerNumberForCurrentBoard <= 0)
             {
                 Debug.LogWarning("[NetworkManager] Connect: MaxPlayerNumberForCurrentBoard is invalid (≤ 0), defaulting to 4");
                 DataManager.Instance.SetMaxPlayerNumberForCurrentBoard(4);
             }
-            
+
             SocketIOManager.Instance.Connect(DataManager.Instance.CurrentUser.id.ToString());
         }
         else
         {
             Debug.Log("[NetworkManager] Already connected. Proceeding to OnWebSocketConnected()");
-            
+
             // Ensure MaxPlayerNumberForCurrentBoard is valid
             if (DataManager.Instance.MaxPlayerNumberForCurrentBoard <= 0)
             {
                 Debug.LogWarning("[NetworkManager] Connect: MaxPlayerNumberForCurrentBoard is invalid (≤ 0) when already connected, defaulting to 4");
                 DataManager.Instance.SetMaxPlayerNumberForCurrentBoard(4);
             }
-            
+
             // If already connected, proceed directly to room joining
             OnWebSocketConnected();
         }
-    }private void OnWebSocketConnected()
+    }
+    private void OnWebSocketConnected()
     {
         Debug.Log($"[NetworkManager] WebSocket connected! RoomType: {DataManager.Instance.CurrentRoomType}, RoomMode: {DataManager.Instance.CurrentRoomMode}");
         Debug.Log($"[NetworkManager] OnWebSocketConnected: MaxPlayerNumberForCurrentBoard = {DataManager.Instance.MaxPlayerNumberForCurrentBoard}");
@@ -167,18 +170,19 @@ public class NetworkManager : MonoBehaviour
             Debug.Log("[NetworkManager] Game not in play state. Calling OnGameFinished.");
             uiManager.OnGameFinished(DiceColor.Unknown);
         }
-    }    private void JoinRandomRoom()
+    }
+    private void JoinRandomRoom()
     {
         Debug.Log("[NetworkManager] JoinRandomRoom() called");
         Debug.Log($"[NetworkManager] JoinRandomRoom: MaxPlayerNumberForCurrentBoard = {DataManager.Instance.MaxPlayerNumberForCurrentBoard}");
         Debug.Log($"[NetworkManager] JoinRandomRoom: CurrentRoomType = {DataManager.Instance.CurrentRoomType}, CurrentRoomMode = {DataManager.Instance.CurrentRoomMode}");
         Debug.Log($"[NetworkManager] JoinRandomRoom: CurrentGameState = {DataManager.Instance.CurrentGameState}");
-        
+
         if (SocketIOManager.Instance.IsConnected())
         {
             string matchFee = Helper.GetReadableNumber(DataManager.Instance.CurrentEntryFee);
             Debug.Log($"[NetworkManager] JoinRandomRoom: Using matchFee = {matchFee}");
-            
+
             // Check for valid room size
             if (DataManager.Instance.MaxPlayerNumberForCurrentBoard <= 0)
             {
@@ -186,7 +190,7 @@ public class NetworkManager : MonoBehaviour
                 Debug.Log("[NetworkManager] JoinRandomRoom: Setting default MaxPlayerNumberForCurrentBoard to 4");
                 DataManager.Instance.SetMaxPlayerNumberForCurrentBoard(4);
             }
-            
+
             Debug.Log($"[NetworkManager] JoinRandomRoom: Final MaxPlayerNumberForCurrentBoard = {DataManager.Instance.MaxPlayerNumberForCurrentBoard}");
             SocketIOManager.Instance.JoinRandomMatch(matchFee, DataManager.Instance.MaxPlayerNumberForCurrentBoard);
         }
@@ -222,12 +226,11 @@ public class NetworkManager : MonoBehaviour
         Debug.Log($"[NetworkManager] Joined room with ID: {roomId}");
         currentRoomId = roomId;
         SetAndShowConnectingStatus("Room joined. Waiting for players...");
-        
-        // Equivalent to what was done in Photon's OnJoinedRoom
-        ConnectingPanel.SetActive(true);
-        GamePanel.SetActive(false);
-        ConnectingStatusText.text = "Waiting for players to join...";
-        
+
+        // Show the joined player panel immediately with default timer
+        uiManager.OpenJoinedPlayerPanelForOnlineMatch();
+        UpdateCountdownDisplay(15); // Show initial 15 second countdown
+
         CheckBackBalanceAndRequestToGetDiceColor();
     }
 
@@ -264,18 +267,18 @@ public class NetworkManager : MonoBehaviour
     private void OnGameStarted(GameStartData gameData)
     {
         Debug.Log($"[NetworkManager] Game started with session ID: {gameData.sessionId}, entry fee: {gameData.entryFee}");
-        
+
         // Set session ID and entry fee
         DataManager.Instance.SetSessionId(gameData.sessionId);
         DataManager.Instance.SetCurrentEntryFees(gameData.entryFee);
-        
+
         // Set the starting player if provided
         if (gameData.startingPlayer != DiceColor.Unknown)
         {
             Debug.Log($"[NetworkManager] Starting player has dice color: {gameData.startingPlayer}");
             // You can use this information to determine who goes first
         }
-        
+
         // Start the game animation
         StartCoroutine(Animtionplay());
     }
@@ -292,7 +295,7 @@ public class NetworkManager : MonoBehaviour
     {
         //if (PhotonNetwork.IsConnected)
         //    PhotonNetwork.Disconnect();
-        
+
         CancelInvoke(nameof(ShowOnlinePlayerCount));
     }
 
@@ -361,12 +364,12 @@ public class NetworkManager : MonoBehaviour
         //PhotonNetwork.LocalPlayer.SetCustomProperties(hashTable);
     }
 
-#region Random Room
-public void PlayWithRandomPlayer()
+    #region Random Room
+    public void PlayWithRandomPlayer()
     {
         Debug.Log("[NetworkManager] PlayWithRandomPlayer() - Preparing random match");
         Debug.Log($"[NetworkManager] Current entry fee: {DataManager.Instance.CurrentEntryFee}, Max players: {DataManager.Instance.MaxPlayerNumberForCurrentBoard}");
-        
+
         // Ensure MaxPlayerNumberForCurrentBoard is set to a valid value
         if (DataManager.Instance.MaxPlayerNumberForCurrentBoard <= 0)
         {
@@ -374,14 +377,14 @@ public void PlayWithRandomPlayer()
             DataManager.Instance.SetMaxPlayerNumberForCurrentBoard(4);
             Debug.Log($"[NetworkManager] PlayWithRandomPlayer: MaxPlayerNumberForCurrentBoard set to {DataManager.Instance.MaxPlayerNumberForCurrentBoard}");
         }
-        
+
         // Check if we need to update and explicitly set the room type
         if (DataManager.Instance.CurrentRoomType != RoomType.Random)
         {
             Debug.Log($"[NetworkManager] PlayWithRandomPlayer: Setting CurrentRoomType from {DataManager.Instance.CurrentRoomType} to Random");
             DataManager.Instance.SetCurrentRoomType(RoomType.Random);
         }
-        
+
         uiManager.CloseAllMultiplayerPanel();
         StartToDisplayPhotonStateCoroutine();
 
@@ -422,10 +425,10 @@ public void PlayWithRandomPlayer()
 
     private void ShowOnlinePlayerCount()
     {
-       // uiManager.ShowOnlinePlayerCount(PhotonNetwork.PlayerList.Length);
+        // uiManager.ShowOnlinePlayerCount(PhotonNetwork.PlayerList.Length);
     }
-    
-   
+
+
 
     private void SetAndShowConnectingStatus(string message)
     {
@@ -446,7 +449,7 @@ public void PlayWithRandomPlayer()
         Debug.Log("[NetworkManager] OnOnlineButtonClick() - Starting online connection process");
         UIManager.Instance.menuManager.HideBackButton();
         SetAndShowConnectingStatus("Connecting to server...");
-        
+
         Debug.Log($"[NetworkManager] Connection status before connecting: Socket.IO connected = {SocketIOManager.Instance.IsConnected()}");
         Connect();
     }
@@ -454,13 +457,13 @@ public void PlayWithRandomPlayer()
     private void CheckBackBalanceAndRequestToGetDiceColor()
     {
         Debug.Log("[NetworkManager] CheckBackBalanceAndRequestToGetDiceColor() called");
-        
+
         // In Socket.IO-based implementation, entry fee is sent by the server with player updates
         // We can either use that or what we already have from DataManager
         int entryFee = DataManager.Instance.CurrentEntryFee;
-        
+
         Debug.Log($"[NetworkManager] EntryFees: {entryFee}, Coins: {DataManager.Instance.Coins}");
-        
+
         if (entryFee > DataManager.Instance.Coins)
         {
             Debug.Log("[NetworkManager] Not enough coins to join room");
@@ -471,7 +474,7 @@ public void PlayWithRandomPlayer()
             SetAndShowConnectingStatus("");
             return;
         }
-        
+
         // No need to request dice color - the server assigns it and sends it in player updates
     }
 
@@ -514,7 +517,7 @@ public void PlayWithRandomPlayer()
     //    //SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     //}
 
-   // public override void OnDisconnected(DisconnectCause cause)
+    // public override void OnDisconnected(DisconnectCause cause)
     //{
     //    uiManager.RemoveAllJoinedPlayers();
     //    Debug.Log($"Disconnected: {cause}");
@@ -528,8 +531,8 @@ public void PlayWithRandomPlayer()
     //    {
     //        HandleDisconnection(cause);
     //    }
-        
-        
+
+
     //    // if (cause == DisconnectCause.Exception || cause == DisconnectCause.ExceptionOnConnect)
     //    // {
     //    //     // Start a 30-second timer to wait for reconnection
@@ -543,7 +546,7 @@ public void PlayWithRandomPlayer()
     //    //     PhotonNetwork.ReconnectAndRejoin();
     //    // }
     //}
-    
+
     //private void HandleDisconnection(DisconnectCause cause)
     //{
     //    switch (cause)
@@ -566,7 +569,7 @@ public void PlayWithRandomPlayer()
     //            break;
     //    }
     //}
-    
+
     private IEnumerator RejoinTimer()
     {
         int waitingTime = 30;
@@ -583,8 +586,8 @@ public void PlayWithRandomPlayer()
         {
             // If the player hasn't rejoined in 30 seconds, disconnect them
             Debug.Log("Rejoin timeout. Disconnecting from the room.");
-         //   PhotonNetwork.LeaveRoom();
-            
+            //   PhotonNetwork.LeaveRoom();
+
             // Optionally, you can set a flag or use PlayerPrefs to ensure
             // the player cannot attempt to join the room again
             PlayerPrefs.SetInt("CanRejoinRoom", 0);
@@ -613,7 +616,7 @@ public void PlayWithRandomPlayer()
 
     //    CreateRandomRoom();
     //}
-    
+
     //public override void OnJoinedRoom()
     //{
     //    if (DataManager.Instance.CurrentGameState == GameState.Play)
@@ -624,11 +627,11 @@ public void PlayWithRandomPlayer()
     //        {
     //            StopCoroutine(rejoinTimerCoroutine);
     //        }
-        
+
     //        Debug.Log("Successfully rejoined the room.");
     //        return;
     //    }
-        
+
     //    Debug.Log("OnJoinedRoom");
     //    ConnectingPanel.SetActive(true);
     //    GamePanel.SetActive(false);
@@ -640,15 +643,15 @@ public void PlayWithRandomPlayer()
     //            UpdateJoinedPlayerDiceColorCustomProperties(DiceColor.Red, PhotonNetwork.LocalPlayer);
     //            photonView.RPC(nameof(StartCountDown), RpcTarget.All, maxJoinWaitingTime);
     //            return;
-            
+
     //        case RoomType.Random when !PhotonNetwork.IsMasterClient:
     //            RequestMasterPlayerToAssignDiceColor();
     //            return;
-            
+
     //        case RoomType.Private when DataManager.Instance.CurrentRoomMode == RoomMode.Join:
     //            CheckBackBalanceAndRequestToGetDiceColor();
     //            return;
-            
+
     //        case RoomType.Private when DataManager.Instance.CurrentRoomMode == RoomMode.Create:
     //            UpdateJoinedPlayerDiceColorCustomProperties(DiceColor.Red, PhotonNetwork.LocalPlayer);
     //            return;
@@ -670,7 +673,7 @@ public void PlayWithRandomPlayer()
     //private void RequestMasterPlayerToAssignDiceColorRPC(int actorNumber)
     //{
     //    Player player = PhotonNetwork.CurrentRoom.Players[actorNumber];
-        
+
     //    AssignDiceColorToJoinedPlayer(player);
     //}
 
@@ -767,14 +770,14 @@ public void PlayWithRandomPlayer()
     //public override void OnPlayerPropertiesUpdate(Player targetPlayer, ExitGames.Client.Photon.Hashtable changedProps)
     //{
     //    DiceColor diceColor = DiceColor.Unknown;
-        
+
     //    if (changedProps.ContainsKey(DICE_COLOR_KEY))
     //    {
     //        diceColor = (DiceColor)changedProps[DICE_COLOR_KEY];
     //        // Apply the new health value to Player2's data
     //        Debug.Log($"DiceColor: {diceColor}, PlayerName: {targetPlayer.NickName}, CanJoin: {canJoin}");
     //    }
-        
+
     //    // Check if the custom properties updated are for Player2 (this player)
     //    if (targetPlayer == PhotonNetwork.LocalPlayer)
     //    {
@@ -788,17 +791,17 @@ public void PlayWithRandomPlayer()
     //        case true when diceColor != DiceColor.Unknown && DataManager.Instance.CurrentRoomType == RoomType.Private:
     //            UIManager.Instance.InstantiateJoinedPlayer(diceColor, targetPlayer, OpenPrivateJoinedPlayerPanel);
     //            return;
-            
+
     //        case true when diceColor != DiceColor.Unknown && DataManager.Instance.CurrentRoomType == RoomType.Random:
     //            UIManager.Instance.InstantiateJoinedPlayer(diceColor, targetPlayer, OpenJoinMultiplayerPanel);
     //            return;
-            
+
     //        case true when DataManager.Instance.CurrentRoomType == RoomType.Private && PhotonNetwork.CurrentRoom.PlayerCount == DataManager.Instance.MaxPlayerNumberForCurrentBoard:
     //            UIManager.Instance.InstantiateJoinedPlayer(diceColor, targetPlayer);
     //            Invoke(nameof(StartGame), 4);
     //            break;
     //    }
-        
+
     //    switch (canJoin)
     //    {
     //        case true when DataManager.Instance.CurrentRoomType == RoomType.Random:
@@ -820,89 +823,94 @@ public void PlayWithRandomPlayer()
         UIManager.Instance.OpenPrivateJoinedPlayerPanel(currentRoomId);
     }
 
-  //  [PunRPC]
+    //  [PunRPC]
     public void StartCountDown(int time)
     {
-        timer = time;
-        uiManager.OpenJoinedPlayerPanelForOnlineMatch();
-        UpdateCountdownDisplay(time);
-        InvokeRepeating(nameof(CountdownToStart), 1f, 1f);
+        UnityMainThreadDispatcher.Instance.Enqueue(() =>
+        {
+            Debug.Log($"[NetworkManager] Starting countdown with {time} seconds");
+            timer = time;
+            uiManager.OpenJoinedPlayerPanelForOnlineMatch();
+            UpdateCountdownDisplay(timer);
+
+            if (IsInvoking(nameof(CountdownToStart)))
+            {
+                CancelInvoke(nameof(CountdownToStart));
+            }
+
+            InvokeRepeating(nameof(CountdownToStart), 1f, 1f);
+        });
     }
     private void CountdownToStart()
     {
-        // Socket.IO server sends timer events that we can listen to
+        if (timer <= 0) return;
+
         float previousTimer = timer;
         timer -= 1f;
-        
-        Debug.Log($"[NetworkManager] CountdownToStart: Timer decremented from {previousTimer} to {timer}");
-        Debug.Log($"[NetworkManager] CountdownToStart: Player count = {SocketIOManager.Instance.GetPlayerCount()}, Room full = {SocketIOManager.Instance.IsRoomFull()}");
-        Debug.Log($"[NetworkManager] CountdownToStart: Room mode = {DataManager.Instance.CurrentRoomMode}, Room type = {DataManager.Instance.CurrentRoomType}");
-        
+
+        Debug.Log($"[NetworkManager] Countdown: {previousTimer} -> {timer}");
+
         UpdateCountdownDisplay(timer);
-        Debug.Log("[NetworkManager] CountdownToStart: Updated countdown display UI");
-        
+
         if (timer <= 0)
         {
-            Debug.Log("[NetworkManager] CountdownToStart: Timer reached zero");
-            Debug.Log($"[NetworkManager] CountdownToStart: Final player count = {SocketIOManager.Instance.GetPlayerCount()}");
             CancelInvoke(nameof(CountdownToStart));
-            
-            // Check if we have enough players
-            if (SocketIOManager.Instance.GetPlayerCount() >= 2)
-            {
-                Debug.Log($"[NetworkManager] CountdownToStart: Starting game with {SocketIOManager.Instance.GetPlayerCount()} players");
-                Debug.Log($"[NetworkManager] CountdownToStart: Player dice colors: {DataManager.Instance.OwnDiceColor}");
-                StartGame();
-            }
-            else
-            {
-                Debug.Log("[NetworkManager] CountdownToStart: Not enough players, returning to main menu");
-                Debug.Log($"[NetworkManager] CountdownToStart: Only {SocketIOManager.Instance.GetPlayerCount()} player(s) in room, minimum 2 needed");
-                CancelAndReturnToMainMenu();
-            }
+            CheckRoomStatusAndStartGame();
         }
-        
-        // Check if room is full before timer ends
-        if (SocketIOManager.Instance.IsRoomFull())
+    }
+    private void CheckRoomStatusAndStartGame()
+    {
+        int playerCount = SocketIOManager.Instance.GetPlayerCount();
+
+        if (playerCount >= 2)
         {
-            Debug.Log("[NetworkManager] CountdownToStart: Room is full, starting game early");
-            Debug.Log($"[NetworkManager] CountdownToStart: Room full with {SocketIOManager.Instance.GetPlayerCount()} player(s)");
-            Debug.Log($"[NetworkManager] CountdownToStart: Canceling countdown at {timer} seconds remaining");
-            
-            CancelInvoke(nameof(CountdownToStart));
+            Debug.Log($"[NetworkManager] Starting game with {playerCount} players");
             StartGame();
         }
-        
-        // Additional logging about player status after each countdown tick
-        if (timer > 0 && timer % 5 == 0)
+        else
         {
-            Debug.Log($"[NetworkManager] CountdownToStart: {timer} seconds remaining, waiting for players...");
-            Debug.Log($"[NetworkManager] CountdownToStart: Current player count: {SocketIOManager.Instance.GetPlayerCount()}");
+            Debug.Log($"[NetworkManager] Only {playerCount} player(s) - not enough to start");
+            CancelAndReturnToMainMenu();
         }
     }
 
-   // [PunRPC]
+    // [PunRPC]
     private void UpdateCountdownDisplay(float time)
     {
-        string message = $"Game starting in {Mathf.Ceil(time)} seconds...";
+        string message;
+
+        if (time <= 0)
+        {
+            message = "Starting game...";
+        }
+        else
+        {
+            message = $"Game starting in {Mathf.Ceil(time)} seconds...";
+
+            // Add player count information if available
+            int playerCount = SocketIOManager.Instance.GetPlayerCount();
+            int maxPlayers = DataManager.Instance.MaxPlayerNumberForCurrentBoard;
+            message += $"\nPlayers: {playerCount}/{maxPlayers}";
+        }
+
         Debug.Log($"[NetworkManager] UpdateCountdownDisplay: {message}");
         uiManager.UpdateCountDownTimerText(message);
     }
 
     private void AbandonedRoomDuetoInsufficientMembers()
     {
-       // PhotonNetwork.Disconnect();
+        // PhotonNetwork.Disconnect();
         Time.timeScale = 0;
         UIManager.Instance.errorPopUp.ShowMessagePanel("The room has been abandoned, try to create or join an another room.");
     }
-      public void StartGame()
+    public void StartGame()
     {
         Debug.Log("[NetworkManager] StartGame() called");
         Debug.Log($"[NetworkManager] StartGame: Current user type: {DataManager.Instance.CurrentUserType}, Player count: {SocketIOManager.Instance.GetPlayerCount()}");
         Debug.Log($"[NetworkManager] StartGame: Room type: {DataManager.Instance.CurrentRoomType}, Room mode: {DataManager.Instance.CurrentRoomMode}");
         Debug.Log($"[NetworkManager] StartGame: Max players: {DataManager.Instance.MaxPlayerNumberForCurrentBoard}, Current entry fee: {DataManager.Instance.CurrentEntryFee}");
         Debug.Log($"[NetworkManager] StartGame: Current room ID: {currentRoomId}, Own dice color: {DataManager.Instance.OwnDiceColor}");
-        
+
         // Close the room to new players using Socket.IO
         if (SocketIOManager.Instance.IsConnected())
         {
@@ -915,14 +923,14 @@ public void PlayWithRandomPlayer()
             Debug.LogWarning("[NetworkManager] StartGame: Socket.IO not connected when trying to start game");
             Debug.LogError("[NetworkManager] StartGame: Cannot start game properly without Socket.IO connection");
         }
-        
+
         // Check if we have enough coins
         Debug.Log($"[NetworkManager] StartGame: Player coins: {DataManager.Instance.Coins}, Required entry fee: {DataManager.Instance.CurrentEntryFee}");
         if (DataManager.Instance.Coins < DataManager.Instance.CurrentEntryFee)
         {
             Debug.LogWarning($"[NetworkManager] StartGame: Not enough coins to start game! Coins: {DataManager.Instance.Coins}, Required: {DataManager.Instance.CurrentEntryFee}");
         }
-        
+
         if (DataManager.Instance.CurrentUserType == UserType.APP)
         {
             Debug.Log("[NetworkManager] StartGame: Initiating session for APP user");
@@ -937,27 +945,27 @@ public void PlayWithRandomPlayer()
         // The server will broadcast the game_started event
     }
 
-   // [PunRPC]
+    // [PunRPC]
     private void OnGameStart()
     {
         StartCoroutine(Animtionplay());
 
     }
-    
-   // [PunRPC]
+
+    // [PunRPC]
     private void OnGameStartWithGameSession(string session)
     {
         DataManager.Instance.SetSessionId(session);
         StartCoroutine(Animtionplay());
     }
-    
+
     IEnumerator Animtionplay()
     {
         Debug.Log("[NetworkManager] Animtionplay: Starting game animation sequence");
-        
+
         string[] playerColors = { "Red", "Blue", "Green", "Yellow" };
         List<Transform> validStartPositions = new List<Transform>();
-        
+
         foreach (string color in playerColors)
         {
             GameObject startObject = GameObject.Find($"JoinedPlayer_{color}");
@@ -993,7 +1001,7 @@ public void PlayWithRandomPlayer()
 
         // Update UI with total match fee
         if (DataManager.Instance.CurrentRoomType == RoomType.Random)
-        {       
+        {
             string readableValue = Helper.GetReadableNumber(totalvalue);
             Debug.Log($"[NetworkManager] Animtionplay: Updating public match fee UI: {readableValue}");
             uiManager.publictotalmatchfee.text = readableValue;
@@ -1004,13 +1012,13 @@ public void PlayWithRandomPlayer()
             Debug.Log($"[NetworkManager] Animtionplay: Updating private match fee UI: {readableValue}");
             uiManager.privatetotalmatchfee.text = readableValue;
         }
-        
+
         Debug.Log("[NetworkManager] Animtionplay: Waiting 5 seconds before proceeding to game");
         yield return new WaitForSeconds(5f);
 
         Debug.Log("[NetworkManager] Animtionplay: Initiating actual game");
         InitiateGame();
-        
+
         Debug.Log("[NetworkManager] Animtionplay: Activating game panels");
         MainPanel.SetActive(false);
         ConnectingPanel.SetActive(false);
@@ -1022,7 +1030,7 @@ public void PlayWithRandomPlayer()
 
         Debug.Log("[NetworkManager] Animtionplay: Setting game state to PLAY");
         DataManager.Instance.SetCurrentGameState(GameState.Play);
-        
+
         Debug.Log("[NetworkManager] Animtionplay: Starting multiplayer game in UI");
         uiManager.StartMultiplayerGame();
     }
@@ -1030,14 +1038,14 @@ public void PlayWithRandomPlayer()
     private void CancelAndReturnToMainMenu()
     {
         Debug.Log("[NetworkManager] CancelAndReturnToMainMenu() called");
-        
+
         // Disconnect from the Socket.IO server
         if (SocketIOManager.Instance.IsConnected())
         {
             Debug.Log("[NetworkManager] Disconnecting from Socket.IO server");
             // The disconnect will happen in OnApplicationQuit in SocketIOManager
         }
-        
+
         uiManager.UpdateCountDownTimerText("Not enough players joined. Returning to the main menu...");
         uiManager.AddBackButtonAction();
         CancelInvoke(nameof(ShowOnlinePlayerCount));
@@ -1122,11 +1130,11 @@ public void PlayWithRandomPlayer()
     #endregion Game Session
 
     #region Create Room
-   
+
     #endregion Create Room
 
     #region Join Room
-   
+
 
     private void ShowUnableToJoinRoomDueToLowBalance()
     {
@@ -1139,8 +1147,8 @@ public void PlayWithRandomPlayer()
 
     private void CloseCurrentRoom()
     {
-       // PhotonNetwork.CurrentRoom.IsOpen = false; // No new players can join
-       // PhotonNetwork.CurrentRoom.IsVisible = false; // Room is not visible in the lobby
+        // PhotonNetwork.CurrentRoom.IsOpen = false; // No new players can join
+        // PhotonNetwork.CurrentRoom.IsVisible = false; // Room is not visible in the lobby
     }
 
     public void StartGameWithDelayTime()
@@ -1179,34 +1187,24 @@ public void PlayWithRandomPlayer()
     public void StartCountdownFromServer(int seconds)
     {
         Debug.Log($"[NetworkManager] StartCountdownFromServer: Starting {seconds} second countdown from server event");
-        Debug.Log($"[NetworkManager] StartCountdownFromServer: Current room type: {DataManager.Instance.CurrentRoomType}, Room mode: {DataManager.Instance.CurrentRoomMode}");
-        Debug.Log($"[NetworkManager] StartCountdownFromServer: Current player count: {SocketIOManager.Instance.GetPlayerCount()}, Room full: {SocketIOManager.Instance.IsRoomFull()}");
-        
-        timer = seconds;
-        
-        Debug.Log("[NetworkManager] StartCountdownFromServer: Opening joined player panel for online match");
-        uiManager.OpenJoinedPlayerPanelForOnlineMatch();
-        
-        UpdateCountdownDisplay(seconds);
-        
-        // Cancel existing countdown if any
-        if (IsInvoking(nameof(CountdownToStart)))
+
+        UnityMainThreadDispatcher.Instance.Enqueue(() =>
         {
-            Debug.Log("[NetworkManager] StartCountdownFromServer: Canceling existing countdown");
-            Debug.Log($"[NetworkManager] StartCountdownFromServer: Previous timer value was: {timer + 1}");
-            CancelInvoke(nameof(CountdownToStart));
-        }
-        
-        Debug.Log("[NetworkManager] StartCountdownFromServer: Starting new countdown timer");
-        Debug.Log($"[NetworkManager] StartCountdownFromServer: Timer will first fire in 1 second, then every 1 second after");
-        InvokeRepeating(nameof(CountdownToStart), 1f, 1f);
-        
-        // Check if we should start immediately because room is full
-        if (SocketIOManager.Instance.IsRoomFull())
-        {
-            Debug.Log("[NetworkManager] StartCountdownFromServer: Room is already full, game could start immediately");
-        }
-        
-        Debug.Log($"[NetworkManager] StartCountdownFromServer: Countdown setup complete. Game will start in approximately {seconds} seconds if enough players join");
+           
+            uiManager.OpenJoinedPlayerPanelForOnlineMatch();
+            
+
+            // Start or update the countdown
+            timer = seconds;
+            UpdateCountdownDisplay(timer);
+
+            if (IsInvoking(nameof(CountdownToStart)))
+            {
+                CancelInvoke(nameof(CountdownToStart));
+            }
+
+            InvokeRepeating(nameof(CountdownToStart), 1f, 1f);
+        });
     }
+
 }

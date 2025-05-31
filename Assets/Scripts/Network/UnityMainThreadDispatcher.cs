@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -5,25 +6,42 @@ namespace Network
 {
     public class UnityMainThreadDispatcher : MonoBehaviour
     {
-        public static UnityMainThreadDispatcher Instance { get; private set; }
-        private readonly Queue<System.Action> executionQueue = new Queue<System.Action>();
+        private static UnityMainThreadDispatcher instance;
+        private static readonly Queue<Action> executionQueue = new Queue<Action>();
+        private static readonly object queueLock = new object();
 
-        private void Awake()
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void Initialize()
         {
-            if (Instance == null)
+            if (instance == null)
             {
-                Instance = this;
-                DontDestroyOnLoad(gameObject);
-            }
-            else
-            {
-                Destroy(gameObject);
+                var obj = new GameObject("UnityMainThreadDispatcher");
+                instance = obj.AddComponent<UnityMainThreadDispatcher>();
+                DontDestroyOnLoad(obj);
             }
         }
 
-        public void Enqueue(System.Action action)
+        public static UnityMainThreadDispatcher Instance
         {
-            lock (executionQueue)
+            get
+            {
+                if (instance == null)
+                {
+                    Initialize();
+                }
+                return instance;
+            }
+        }
+
+        public void Enqueue(Action action)
+        {
+            if (action == null)
+            {
+                Debug.LogWarning("Attempted to enqueue a null action");
+                return;
+            }
+
+            lock (queueLock)
             {
                 executionQueue.Enqueue(action);
             }
@@ -31,12 +49,28 @@ namespace Network
 
         private void Update()
         {
-            lock (executionQueue)
+            lock (queueLock)
             {
                 while (executionQueue.Count > 0)
                 {
-                    executionQueue.Dequeue()?.Invoke();
+                    try
+                    {
+                        var action = executionQueue.Dequeue();
+                        action?.Invoke();
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.LogError($"Error executing action on main thread: {ex}");
+                    }
                 }
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (instance == this)
+            {
+                instance = null;
             }
         }
     }
