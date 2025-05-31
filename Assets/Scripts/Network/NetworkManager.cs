@@ -876,7 +876,7 @@ public void PlayWithRandomPlayer()
                 DataManager.Instance.SetSessionId(sessionInitResponse.game_session);
                 
                 Debug.Log($"GameSession: {sessionInitResponse.game_session}, Data: {DataManager.Instance.SessionId}");
-
+                OnGameStartWithGameSession(sessionInitResponse.game_session);
                // pv.RPC(nameof(OnGameStartWithGameSession), RpcTarget.AllBuffered, sessionInitResponse.game_session);
 
                 return;
